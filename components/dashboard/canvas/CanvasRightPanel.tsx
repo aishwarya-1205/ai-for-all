@@ -8,6 +8,7 @@ import {
   FolderOpen,
   AudioWaveform,
   GraduationCap,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -47,6 +48,20 @@ const CanvasRightPanel = ({ isOpen, onClose }: CanvasRightPanelProps) => {
   const { files, addFiles, removeFile } = useFiles();
   return (
     <aside className="h-full w-full flex flex-col py-3 px-3.5 gap-4 overflow-y-auto no-scrollbar bg-background">
+      {/* Mobile-only close header */}
+      <div className="flex items-center justify-between px-1 lg:hidden">
+        <span className="text-[10px] font-medium text-muted-foreground/35 uppercase tracking-widest">
+          Panel
+        </span>
+        <button
+          onClick={onClose}
+          className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground/50 hover:text-foreground/80 hover:bg-muted/40 transition-all duration-150"
+          aria-label="Close panel"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
       <div>
         <p className="text-[10px] font-medium text-muted-foreground/35 uppercase tracking-widest mb-2 px-1">
           Model

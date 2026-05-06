@@ -70,7 +70,7 @@ export default function DashboardLayout({
       <motion.div
         className={cn(
           "shrink-0 transition-all duration-300 ease-in-out fixed inset-y-0 left-0 z-40 lg:relative lg:inset-auto lg:z-auto border-r border-border/40 bg-background",
-          !sidebarOpen && "lg:border-none"
+          !sidebarOpen && "lg:border-none",
         )}
         animate={{
           width: sidebarOpen ? 260 : 0,
@@ -84,7 +84,12 @@ export default function DashboardLayout({
 
       {/* Main Container */}
       <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
-        {/* Sidebar toggle — always visible on mobile, hidden on desktop when sidebar open */}
+        {/*
+          Floating sidebar toggle:
+          - On desktop: hidden when sidebar is already open
+          - On mobile: hidden whenever the sidebar OR right panel is open
+            (user should use the in-panel X button to close instead)
+        */}
         <button
           onClick={() => {
             if (isMobile && rightPanelOpen) setRightPanelOpen(false);
@@ -92,7 +97,10 @@ export default function DashboardLayout({
           }}
           className={cn(
             "absolute top-3 left-3 z-50 w-8 h-8 rounded-xl glass border border-glass shadow-float flex items-center justify-center text-muted-foreground/60 hover:text-foreground/80 hover:shadow-glow-accent transition-all duration-200",
-            sidebarOpen && "lg:hidden"
+            // Desktop: hide when sidebar is open
+            sidebarOpen && "lg:hidden",
+            // Mobile: hide when either panel is open
+            isMobile && (sidebarOpen || rightPanelOpen) && "hidden",
           )}
         >
           <PanelLeft className="w-4 h-4" />
@@ -119,7 +127,9 @@ export default function DashboardLayout({
             <motion.div
               className={cn(
                 "bg-background z-40 transition-all duration-300 overflow-hidden shrink-0",
-                isMobile ? "fixed right-0 top-0 bottom-0 shadow-2xl" : "relative h-full"
+                isMobile
+                  ? "fixed right-0 top-0 bottom-0 shadow-2xl"
+                  : "relative h-full",
               )}
               animate={{
                 width: rightPanelOpen ? 260 : 0,
@@ -135,7 +145,7 @@ export default function DashboardLayout({
                   {
                     isOpen: rightPanelOpen,
                     onClose: () => setRightPanelOpen(false),
-                  }
+                  },
                 )}
               </div>
             </motion.div>
