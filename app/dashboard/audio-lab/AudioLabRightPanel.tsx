@@ -10,6 +10,7 @@ import {
   Star,
   ChevronDown,
 } from "lucide-react";
+import Image from "next/image";
 
 const voices = [
   { id: "sarah", name: "Sarah", desc: "Warm & professional", avatar: "S" },
@@ -50,9 +51,15 @@ const AudioLabRightPanel = ({
         </p>
         <div className="bg-transparent rounded-2xl p-4 px-1">
           <div className="flex items-center gap-2.5 mb-2.5">
-            <div className="w-8 h-8 rounded-xl gradient-accent flex items-center justify-center">
-              {/* Image will be added here by user */}
+            <div className="relative w-12 h-12 rounded-xl overflow-hidden">
+              <Image
+                src="/logo.png"
+                alt="Rivinity Logo"
+                fill
+                className="object-contain p-1"
+              />
             </div>
+
             <div>
               <p className="text-sm font-medium text-foreground">
                 Rivinity Evo
