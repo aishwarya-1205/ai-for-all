@@ -79,9 +79,7 @@ export function TestimonialsSection() {
         viewport={{ once: true }}
         className="flex flex-col items-center justify-center max-w-[600px] mx-auto text-center"
       >
-        <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 text-xs sm:text-sm font-medium text-accent uppercase tracking-wider mb-6">
-          Trusted by India's Leaders
-        </span>
+
 
         <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold tracking-tight mb-6 text-foreground text-balance">
           What our <span className="text-gradient">users</span> say

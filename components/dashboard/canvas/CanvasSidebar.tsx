@@ -21,17 +21,25 @@ const saved = [
   { id: 7, title: "Deployment checklist", time: "5d ago" },
 ];
 
+import { useSafeMode } from "@/lib/safe-mode-context";
+import { cn } from "@/lib/utils";
+
 interface CanvasSidebarProps {
   onClose?: () => void;
 }
 
 const CanvasSidebar = ({ onClose }: CanvasSidebarProps) => {
+  const { incognitoMode } = useSafeMode();
+
   return (
-    <aside className="w-[260px] h-full flex flex-col shrink-0 bg-background">
+    <aside className={cn(
+      "w-[260px] h-full flex flex-col shrink-0 transition-colors duration-500",
+      incognitoMode ? "bg-[#0a0510]" : "bg-background"
+    )}>
       <div className="px-5 pt-5 pb-4 relative flex items-center justify-center">
         {/* Centered Logo + Text */}
         <div className="flex items-center gap-2.5">
-          <div className="relative w-8 h-8">
+          <div className={`relative w-10 h-10 transition-all duration-500 ${incognitoMode ? "shadow-[0_0_20px_rgba(168,85,247,0.3)]" : ""}`}>
             <Image
               src="/logo.png"
               alt="Rivinity Logo"
@@ -41,7 +49,10 @@ const CanvasSidebar = ({ onClose }: CanvasSidebarProps) => {
             />
           </div>
 
-          <span className="font-semibold text-foreground tracking-tight text-[17px]">
+          <span className={cn(
+            "font-semibold tracking-tight text-[17px] transition-colors",
+            incognitoMode ? "text-purple-100" : "text-foreground"
+          )}>
             Rivinity
           </span>
         </div>
@@ -51,7 +62,10 @@ const CanvasSidebar = ({ onClose }: CanvasSidebarProps) => {
           <button
             onClick={onClose}
             aria-label="Close sidebar"
-            className="absolute right-5 w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground/50 hover:text-foreground/70 transition-all lg:hidden"
+            className={cn(
+              "absolute right-5 w-7 h-7 rounded-lg flex items-center justify-center transition-all lg:hidden",
+              incognitoMode ? "text-purple-400/50 hover:text-purple-300" : "text-muted-foreground/50 hover:text-foreground/70"
+            )}
           >
             <X className="w-4 h-4" />
           </button>
@@ -59,7 +73,12 @@ const CanvasSidebar = ({ onClose }: CanvasSidebarProps) => {
       </div>
 
       <div className="px-4 mb-4">
-        <button className="w-full h-9 rounded-full gradient-accent text-primary-foreground text-sm font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+        <button className={cn(
+          "w-full h-9 rounded-full text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300",
+          incognitoMode
+            ? "bg-gradient-to-br from-purple-600 to-indigo-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.2)] hover:shadow-[0_0_25px_rgba(168,85,247,0.4)]"
+            : "gradient-accent text-primary-foreground hover:opacity-90"
+        )}>
           <Plus className="w-4 h-4" />
           New Chat
         </button>
@@ -76,12 +95,21 @@ const CanvasSidebar = ({ onClose }: CanvasSidebarProps) => {
           {conversations.map((c) => (
             <button
               key={c.id}
-              className="w-full text-left px-3 py-2 rounded-xl hover:bg-muted/50 transition-colors duration-150"
+              className={cn(
+                "w-full text-left px-3 py-2 rounded-xl transition-all duration-150",
+                incognitoMode ? "hover:bg-purple-500/10" : "hover:bg-muted/50"
+              )}
             >
-              <p className="text-[13px] text-foreground/70 truncate">
+              <p className={cn(
+                "text-[13px] truncate transition-colors",
+                incognitoMode ? "text-purple-100/70" : "text-foreground/70"
+              )}>
                 {c.title}
               </p>
-              <p className="text-[11px] text-muted-foreground/40 mt-0.5">
+              <p className={cn(
+                "text-[11px] mt-0.5 transition-colors",
+                incognitoMode ? "text-purple-400/30" : "text-muted-foreground/40"
+              )}>
                 {c.time}
               </p>
             </button>
@@ -98,12 +126,21 @@ const CanvasSidebar = ({ onClose }: CanvasSidebarProps) => {
           {saved.map((c) => (
             <button
               key={c.id}
-              className="w-full text-left px-3 py-2 rounded-xl hover:bg-muted/50 transition-colors duration-150"
+              className={cn(
+                "w-full text-left px-3 py-2 rounded-xl transition-all duration-150",
+                incognitoMode ? "hover:bg-purple-500/10" : "hover:bg-muted/50"
+              )}
             >
-              <p className="text-[13px] text-foreground/70 truncate">
+              <p className={cn(
+                "text-[13px] truncate transition-colors",
+                incognitoMode ? "text-purple-100/70" : "text-foreground/70"
+              )}>
                 {c.title}
               </p>
-              <p className="text-[11px] text-muted-foreground/40 mt-0.5">
+              <p className={cn(
+                "text-[11px] mt-0.5 transition-colors",
+                incognitoMode ? "text-purple-400/30" : "text-muted-foreground/40"
+              )}>
                 {c.time}
               </p>
             </button>

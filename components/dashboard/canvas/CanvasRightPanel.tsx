@@ -44,22 +44,34 @@ interface CanvasRightPanelProps {
   onClose?: () => void;
 }
 
+import { useSafeMode } from "@/lib/safe-mode-context";
+import { cn } from "@/lib/utils";
+
 const CanvasRightPanel = ({ isOpen, onClose }: CanvasRightPanelProps) => {
   const router = useRouter();
   const { files, addFiles, removeFile } = useFiles();
-  // Add state inside CanvasRightPanel component:
+  const { incognitoMode } = useSafeMode();
   const [activeTool, setActiveTool] = useState("Web Search");
 
   return (
-    <aside className="h-full w-full flex flex-col py-3 px-3.5 gap-4 overflow-y-auto no-scrollbar bg-background">
+    <aside className={cn(
+      "h-full w-full flex flex-col py-3 px-3.5 gap-4 overflow-y-auto no-scrollbar transition-colors duration-500",
+      incognitoMode ? "bg-[#0a0510]" : "bg-background"
+    )}>
       {/* Mobile-only close header */}
       <div className="flex items-center justify-between px-1 lg:hidden">
-        <span className="text-[10px] font-medium text-muted-foreground/35 uppercase tracking-widest">
+        <span className={cn(
+          "text-[10px] font-medium uppercase tracking-widest",
+          incognitoMode ? "text-purple-400/30" : "text-muted-foreground/35"
+        )}>
           Panel
         </span>
         <button
           onClick={onClose}
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground/50 hover:text-foreground/80 hover:bg-muted/40 transition-all duration-150"
+          className={cn(
+            "w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150",
+            incognitoMode ? "text-purple-400/50 hover:text-purple-300 hover:bg-purple-500/10" : "text-muted-foreground/50 hover:text-foreground/80 hover:bg-muted/40"
+          )}
           aria-label="Close panel"
         >
           <X className="w-3.5 h-3.5" />
@@ -67,12 +79,21 @@ const CanvasRightPanel = ({ isOpen, onClose }: CanvasRightPanelProps) => {
       </div>
 
       <div>
-        <p className="text-[10px] font-medium text-muted-foreground/35 uppercase tracking-widest mb-2 px-1">
+        <p className={cn(
+          "text-[10px] font-medium uppercase tracking-widest mb-2 px-1",
+          incognitoMode ? "text-purple-400/30" : "text-muted-foreground/35"
+        )}>
           Model
         </p>
-        <div className="rounded-xl p-3">
+        <div className={cn(
+          "rounded-xl p-3 transition-colors",
+          incognitoMode ? "bg-purple-950/10 border border-purple-500/10" : "bg-muted/30"
+        )}>
           <div className="flex items-center gap-2 mb-2">
-            <div className="relative w-10 h-10 rounded-xl overflow-hidden">
+            <div className={cn(
+              "relative w-10 h-10 rounded-xl overflow-hidden transition-all duration-500",
+              incognitoMode ? "shadow-[0_0_20px_rgba(168,85,247,0.2)]" : ""
+            )}>
               <Image
                 src="/logo.png"
                 alt="Rivinity Logo"
@@ -81,17 +102,26 @@ const CanvasRightPanel = ({ isOpen, onClose }: CanvasRightPanelProps) => {
               />
             </div>
             <div>
-              <p className="text-[12.5px] font-medium text-foreground leading-tight">
+              <p className={cn(
+                "text-[12.5px] font-medium leading-tight transition-colors",
+                incognitoMode ? "text-purple-100" : "text-foreground"
+              )}>
                 Rivinity Core
               </p>
-              <p className="text-[10px] text-muted-foreground/45">
+              <p className={cn(
+                "text-[10px] transition-colors",
+                incognitoMode ? "text-purple-400/40" : "text-muted-foreground/45"
+              )}>
                 v2.4 · 128k ctx
               </p>
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <Zap className="w-2.5 h-2.5 text-accent" />
-            <span className="text-[10px] text-muted-foreground/45">
+            <Zap className={cn("w-2.5 h-2.5", incognitoMode ? "text-purple-400" : "text-accent")} />
+            <span className={cn(
+              "text-[10px] transition-colors",
+              incognitoMode ? "text-purple-400/40" : "text-muted-foreground/45"
+            )}>
               Fast inference · Online
             </span>
           </div>
@@ -99,7 +129,10 @@ const CanvasRightPanel = ({ isOpen, onClose }: CanvasRightPanelProps) => {
       </div>
 
       <div>
-        <p className="text-[10px] font-medium text-muted-foreground/35 uppercase tracking-widest mb-2 px-1">
+        <p className={cn(
+          "text-[10px] font-medium uppercase tracking-widest mb-2 px-1",
+          incognitoMode ? "text-purple-400/30" : "text-muted-foreground/35"
+        )}>
           Tools
         </p>
         <div className="grid grid-cols-2 gap-1.5">
@@ -110,17 +143,29 @@ const CanvasRightPanel = ({ isOpen, onClose }: CanvasRightPanelProps) => {
                 setActiveTool(t.label);
                 if (t.route) router.push(t.route);
               }}
-              className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all duration-150 ${
+              className={cn(
+                "flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all duration-300",
                 activeTool === t.label
-                  ? "bg-accent/10 border-accent/30 shadow-sm"
-                  : "glass border-glass hover:border-glass-hover hover:shadow-float"
-              } ${t.route ? "cursor-pointer" : ""}`}
+                  ? (incognitoMode ? "bg-purple-500/20 border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.1)]" : "bg-accent/10 border-accent/30 shadow-sm")
+                  : (incognitoMode ? "bg-purple-950/5 border-purple-500/5 hover:border-purple-500/20 hover:bg-purple-500/10" : "glass border-glass hover:border-glass-hover hover:shadow-float"),
+                t.route ? "cursor-pointer" : ""
+              )}
             >
               <t.icon
-                className={`w-4 h-4 ${activeTool === t.label ? "text-accent" : t.color}`}
+                className={cn(
+                  "w-4 h-4 transition-colors",
+                  activeTool === t.label 
+                    ? (incognitoMode ? "text-purple-400" : "text-accent") 
+                    : (incognitoMode ? "text-purple-400/40" : t.color)
+                )}
               />
               <span
-                className={`text-[11px] font-medium ${activeTool === t.label ? "text-accent" : "text-foreground/70"}`}
+                className={cn(
+                  "text-[11px] font-medium transition-colors",
+                  activeTool === t.label 
+                    ? (incognitoMode ? "text-purple-200" : "text-accent") 
+                    : (incognitoMode ? "text-purple-100/50" : "text-foreground/70")
+                )}
               >
                 {t.label}
               </span>
@@ -130,7 +175,12 @@ const CanvasRightPanel = ({ isOpen, onClose }: CanvasRightPanelProps) => {
       </div>
 
       <div
-        className="rounded-xl px-4 py-6 flex flex-col items-center text-center border border-dashed border-border/40 hover:border-accent/40 transition gap-2"
+        className={cn(
+          "rounded-xl px-4 py-6 flex flex-col items-center text-center border border-dashed transition-all duration-300 gap-2",
+          incognitoMode 
+            ? "border-purple-500/20 hover:border-purple-500/40 bg-purple-500/5" 
+            : "border-border/40 hover:border-accent/40 bg-muted/5"
+        )}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => {
           e.preventDefault();
@@ -154,8 +204,14 @@ const CanvasRightPanel = ({ isOpen, onClose }: CanvasRightPanelProps) => {
           htmlFor="fileUpload-canvas"
           className="cursor-pointer flex flex-col items-center justify-center w-full"
         >
-          <FolderOpen className="w-7 h-7 text-muted-foreground/40 mb-2" />
-          <p className="text-[11px] text-muted-foreground/50">
+          <FolderOpen className={cn(
+            "w-7 h-7 mb-2 transition-colors",
+            incognitoMode ? "text-purple-400/30" : "text-muted-foreground/40"
+          )} />
+          <p className={cn(
+            "text-[11px] transition-colors",
+            incognitoMode ? "text-purple-400/40" : "text-muted-foreground/50"
+          )}>
             {files.length === 0
               ? "Drop files or click to upload"
               : "Add more files"}
@@ -167,12 +223,18 @@ const CanvasRightPanel = ({ isOpen, onClose }: CanvasRightPanelProps) => {
             {files.map((file, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between text-[10px] bg-muted/40 px-2 py-1 rounded"
+                className={cn(
+                  "flex items-center justify-between text-[10px] px-2 py-1 rounded transition-colors",
+                  incognitoMode ? "bg-purple-500/10 text-purple-200/70" : "bg-muted/40 text-foreground"
+                )}
               >
                 <span className="truncate max-w-[120px]">{file.name}</span>
                 <button
                   onClick={() => removeFile(i)}
-                  className="text-red-400 text-[9px]"
+                  className={cn(
+                    "transition-colors text-[9px]",
+                    incognitoMode ? "text-purple-400 hover:text-purple-300" : "text-red-400 hover:text-red-500"
+                  )}
                 >
                   ✕
                 </button>

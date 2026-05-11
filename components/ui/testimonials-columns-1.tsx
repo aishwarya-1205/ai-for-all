@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { AnimatedAvatar } from "./animated-avatar";
 
 export interface Testimonial {
   text: string;
@@ -47,9 +47,7 @@ export const TestimonialsColumn = ({
                   className="h-10 w-10 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-highlight flex items-center justify-center text-white font-bold text-sm">
-                  {image}
-                </div>
+                <AnimatedAvatar name={name} size={40} />
               )}
 
               <div>

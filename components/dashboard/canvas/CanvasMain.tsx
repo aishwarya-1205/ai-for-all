@@ -167,6 +167,7 @@ const SuggestionsCarousel = ({
 }: {
   suggestions: { icon: React.ElementType; label: string }[];
 }) => {
+  const { incognitoMode } = useSafeMode();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: "left" | "right") => {
@@ -183,7 +184,12 @@ const SuggestionsCarousel = ({
     <div className="w-full relative group">
       <button
         onClick={() => scroll("left")}
-        className="absolute left-[-15px] top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full glass border border-glass flex items-center justify-center text-muted-foreground/40 hover:text-foreground opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+        className={cn(
+          "absolute left-[-15px] top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full border flex items-center justify-center transition-all shadow-sm opacity-0 group-hover:opacity-100",
+          incognitoMode
+            ? "bg-purple-950/20 border-purple-500/20 text-purple-400 hover:text-purple-300"
+            : "glass border-glass text-muted-foreground/40 hover:text-foreground"
+        )}
       >
         <ChevronLeft className="w-4 h-4" />
       </button>
@@ -202,7 +208,12 @@ const SuggestionsCarousel = ({
           <button
             key={s.label}
             style={{ scrollSnapAlign: "center" }}
-            className="shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted hover:bg-muted/80 transition-colors text-[11.5px] text-muted-foreground font-medium"
+            className={cn(
+              "shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full transition-colors text-[11.5px] font-medium",
+              incognitoMode
+                ? "bg-purple-500/10 text-purple-300/70 hover:bg-purple-500/20 hover:text-purple-100"
+                : "bg-muted hover:bg-muted/80 text-muted-foreground"
+            )}
           >
             <s.icon className="w-3 h-3" />
             {s.label}
@@ -212,7 +223,12 @@ const SuggestionsCarousel = ({
 
       <button
         onClick={() => scroll("right")}
-        className="absolute right-[-15px] top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full glass border border-glass flex items-center justify-center text-muted-foreground/40 hover:text-foreground opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+        className={cn(
+          "absolute right-[-15px] top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full border flex items-center justify-center transition-all shadow-sm opacity-0 group-hover:opacity-100",
+          incognitoMode
+            ? "bg-purple-950/20 border-purple-500/20 text-purple-400 hover:text-purple-300"
+            : "glass border-glass text-muted-foreground/40 hover:text-foreground"
+        )}
       >
         <ChevronRight className="w-4 h-4" />
       </button>
@@ -229,6 +245,7 @@ const QuickCardsCarousel = ({
   onSelect: (val: string) => void;
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
 }) => {
+  const { incognitoMode } = useSafeMode();
   const trackRef = useRef<HTMLDivElement>(null);
   const [isMoved, setIsMoved] = useState(false);
   const isDragging = useRef(false);
@@ -297,15 +314,29 @@ const QuickCardsCarousel = ({
                 setTimeout(() => textareaRef.current?.focus(), 0);
               }
             }}
-            className="shrink-0 text-left p-3 rounded-xl glass border border-glass hover:border-glass-hover transition-all duration-200 group flex flex-col items-start gap-2"
+            className={cn(
+              "shrink-0 text-left p-3 rounded-xl border transition-all duration-300 group flex flex-col items-start gap-2",
+              incognitoMode
+                ? "bg-purple-900/10 border-purple-500/10 hover:border-purple-500/30 hover:bg-purple-500/20"
+                : "glass border-glass hover:border-glass-hover hover:shadow-float"
+            )}
             style={{ width: "clamp(160px, 42vw, 220px)" }}
           >
-            <c.icon className="w-4 h-4 text-accent/70 group-hover:text-accent transition-colors" />
+            <c.icon className={cn(
+              "w-4 h-4 transition-colors",
+              incognitoMode ? "text-purple-400 group-hover:text-purple-300" : "text-accent/70 group-hover:text-accent"
+            )} />
             <div>
-              <p className="text-[12.5px] font-medium text-foreground/80">
+              <p className={cn(
+                "text-[12.5px] font-medium transition-colors",
+                incognitoMode ? "text-purple-100/90" : "text-foreground/80"
+              )}>
                 {c.title}
               </p>
-              <p className="text-[11px] text-muted-foreground/50 mt-0.5 leading-relaxed">
+              <p className={cn(
+                "text-[11px] mt-0.5 leading-relaxed transition-colors",
+                incognitoMode ? "text-purple-400/30 group-hover:text-purple-400/50" : "text-muted-foreground/50"
+              )}>
                 {c.desc}
               </p>
             </div>
@@ -348,14 +379,22 @@ const getTabIcon = (label: string) => {
   return Search;
 };
 
+import { useSafeMode } from "@/lib/safe-mode-context";
+import { cn } from "@/lib/utils";
+
 const CanvasMain = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [tabs, setTabs] = useState<Tab[]>([]);
+  const [tabs, setTabs] = useState<Tab[]>(defaultTabs);
   const [activeTab, setActiveTab] = useState(defaultTabs[0].id);
   const [isAddingTab, setIsAddingTab] = useState(false);
   const [newTabName, setNewTabName] = useState("");
+  const [editingTabId, setEditingTabId] = useState<number | null>(null);
+  const [editingName, setEditingName] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const { incognitoMode, setIncognitoMode } = useSafeMode();
+
   const closeTab = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (tabs.length <= 1) return;
@@ -386,48 +425,87 @@ const CanvasMain = () => {
 
   const isEmpty = messages.length === 0;
 
-  // Add to your useState imports at the top of CanvasMain component:
-  const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
-  const [incognitoMode, setIncognitoMode] = useState(false);
-  const modelDropdownRef = useRef<HTMLDivElement>(null);
-
-  // Add this useEffect for outside click (put it after your refs):
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (
-        modelDropdownRef.current &&
-        !modelDropdownRef.current.contains(e.target as Node)
-      ) {
-        setModelDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
   const inputArea = (
     <div className="w-full max-w-[660px]">
-      <div className="border border-border/60 rounded-2xl shadow-float input-glow transition-all duration-200 overflow-hidden bg-background">
+      <div className={cn(
+        "border rounded-2xl shadow-float transition-all duration-300 overflow-hidden",
+        incognitoMode ? "bg-[#110a18] border-purple-500/20 shadow-[0_8px_30px_rgba(0,0,0,0.5)]" : "bg-background border-border/60"
+      )}>
         <div className="flex items-center overflow-x-auto scrollbar-none gap-0.5 px-2 py-1.5">
           {tabs.map((tab) => (
-            <button
+            <div
               key={tab.id}
+              className={cn(
+                "group relative flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium transition-all duration-150 rounded-lg shrink-0 cursor-pointer",
+                activeTab === tab.id
+                  ? (incognitoMode ? "bg-purple-500/20 text-purple-200" : "bg-muted/60 text-foreground")
+                  : (incognitoMode ? "text-purple-400/40 hover:text-purple-300 hover:bg-purple-500/10" : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/60")
+              )}
               onClick={() => setActiveTab(tab.id)}
-              className={`group relative flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium transition-all duration-150 rounded-lg shrink-0 ${activeTab === tab.id ? "bg-muted/60 text-foreground" : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/60"}`}
             >
               <tab.icon className="w-3 h-3 shrink-0" />
-              <span className="truncate hidden xs:inline">{tab.label}</span>
-              {tabs.length > 1 && (
-                <X
-                  className="w-2.5 h-2.5 shrink-0 opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity"
-                  onClick={(e) => closeTab(tab.id, e)}
+              {editingTabId === tab.id ? (
+                <input
+                  autoFocus
+                  value={editingName}
+                  onChange={(e) => setEditingName(e.target.value)}
+                  onBlur={() => {
+                    if (editingName.trim()) {
+                      setTabs(p => p.map(t => t.id === tab.id ? { ...t, label: editingName.trim(), icon: getTabIcon(editingName.trim()) } : t));
+                    }
+                    setEditingTabId(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      if (editingName.trim()) {
+                        setTabs(p => p.map(t => t.id === tab.id ? { ...t, label: editingName.trim(), icon: getTabIcon(editingName.trim()) } : t));
+                      }
+                      setEditingTabId(null);
+                    }
+                  }}
+                  className="bg-transparent outline-none w-24"
+                  onClick={(e) => e.stopPropagation()}
                 />
+              ) : (
+                <>
+                  <span
+                    className="truncate max-w-[120px]"
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      setEditingTabId(tab.id);
+                      setEditingName(tab.label);
+                    }}
+                  >
+                    {tab.label}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <Pencil
+                      className="w-2.5 h-2.5 opacity-0 group-hover:opacity-40 hover:!opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingTabId(tab.id);
+                        setEditingName(tab.label);
+                      }}
+                    />
+                    {tabs.length > 1 && (
+                      <X
+                        className="w-2.5 h-2.5 shrink-0 opacity-0 group-hover:opacity-40 hover:!opacity-100 transition-opacity"
+                        onClick={(e) => closeTab(tab.id, e)}
+                      />
+                    )}
+                  </div>
+                </>
               )}
-            </button>
+            </div>
           ))}
           <button
             onClick={() => setIsAddingTab(!isAddingTab)}
-            className={`px-3 py-2 flex items-center gap-1 text-[12px] font-medium transition-all shrink-0 ${isAddingTab ? "bg-accent/10 text-accent" : "text-muted-foreground/40 hover:text-muted-foreground/70 hover:bg-muted/60"}`}
+            className={cn(
+              "px-3 py-2 flex items-center gap-1 text-[12px] font-medium transition-all shrink-0",
+              isAddingTab
+                ? (incognitoMode ? "text-purple-400 bg-purple-500/10" : "bg-accent/10 text-accent")
+                : (incognitoMode ? "text-purple-400/40 hover:text-purple-300 hover:bg-purple-500/10" : "text-muted-foreground/40 hover:text-muted-foreground/70 hover:bg-muted/60")
+            )}
           >
             <Plus
               className={`w-3 h-3 transition-transform duration-300 ${isAddingTab ? "rotate-45" : ""}`}
@@ -440,9 +518,9 @@ const CanvasMain = () => {
         <div
           className={`overflow-hidden transition-all duration-300 ease-in-out ${isAddingTab ? "max-h-[400px] opacity-100 border-b border-border/40" : "max-h-0 opacity-0"}`}
         >
-          <div className="p-4 bg-muted/20">
+          <div className={cn("p-4", incognitoMode ? "bg-purple-950/10" : "bg-muted/20")}>
             <div className="flex items-center justify-between mb-4">
-              <p className="text-[11px] font-bold text-muted-foreground/40 uppercase tracking-widest px-1">
+              <p className={cn("text-[11px] font-bold uppercase tracking-widest px-1", incognitoMode ? "text-purple-400/30" : "text-muted-foreground/40")}>
                 Research Tools
               </p>
               <div className="flex items-center gap-2">
@@ -462,7 +540,10 @@ const CanvasMain = () => {
                       setNewTabName("");
                     }
                   }}
-                  className="bg-background/50 border border-border/40 rounded-lg px-3 py-1 text-[11px] outline-none focus:border-accent/40 w-36 transition-all"
+                  className={cn(
+                    "border rounded-lg px-3 py-1 text-[11px] outline-none transition-all w-36",
+                    incognitoMode ? "bg-purple-950/20 border-purple-500/20 focus:border-purple-500/40 text-purple-100" : "bg-background/50 border-border/40 focus:border-accent/40"
+                  )}
                   placeholder="Custom name..."
                 />
               </div>
@@ -481,9 +562,15 @@ const CanvasMain = () => {
                     setActiveTab(tab.id);
                     setIsAddingTab(false);
                   }}
-                  className="flex items-center w-full h-11 px-4 rounded-xl border border-transparent hover:border-accent/20 bg-background/0 hover:bg-background/40 hover:shadow-sm transition-all group"
+                  className={cn(
+                    "flex items-center w-full h-11 px-4 rounded-xl border border-transparent transition-all group",
+                    incognitoMode ? "hover:border-purple-500/20 hover:bg-purple-500/5" : "hover:border-accent/20 bg-background/0 hover:bg-background/40 hover:shadow-sm"
+                  )}
                 >
-                  <p className="text-[14px] font-medium text-foreground/60 group-hover:text-accent transition-all group-hover:pl-2">
+                  <p className={cn(
+                    "text-[14px] font-medium transition-all group-hover:pl-2",
+                    incognitoMode ? "text-purple-100/60 group-hover:text-purple-400" : "text-foreground/60 group-hover:text-accent"
+                  )}>
                     {template.label}
                   </p>
                 </button>
@@ -503,121 +590,75 @@ const CanvasMain = () => {
           }}
           placeholder="Curious? Ask and dive into scholarly insights"
           rows={2}
-          className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none px-4 pt-3 pb-1 resize-none"
+          className={cn(
+            "w-full bg-transparent text-sm focus:outline-none px-4 pt-3 pb-1 resize-none",
+            incognitoMode ? "text-purple-50 placeholder:text-purple-400/20" : "text-foreground placeholder:text-muted-foreground/40"
+          )}
         />
         <div className="flex items-center justify-between px-3 pb-2.5 pt-1">
           <div className="flex items-center gap-0.5">
-            <button className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground/35 hover:text-muted-foreground/60 hover:bg-muted/40 transition-all">
+            <button className={cn(
+              "w-7 h-7 rounded-lg flex items-center justify-center transition-all",
+              incognitoMode ? "text-purple-400/30 hover:text-purple-400/60 hover:bg-purple-500/10" : "text-muted-foreground/35 hover:text-muted-foreground/60 hover:bg-muted/40"
+            )}>
               <Paperclip className="w-3.5 h-3.5" />
             </button>
-            <button className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground/35 hover:text-muted-foreground/60 hover:bg-muted/40 transition-all">
+            <button className={cn(
+              "w-7 h-7 rounded-lg flex items-center justify-center transition-all",
+              incognitoMode ? "text-purple-400/30 hover:text-purple-400/60 hover:bg-purple-500/10" : "text-muted-foreground/35 hover:text-muted-foreground/60 hover:bg-muted/40"
+            )}>
               <Mic className="w-3.5 h-3.5" />
             </button>
-            <div
-              className="relative hidden sm:block ml-1"
-              ref={modelDropdownRef}
-            >
+            {/* Radio Toggle for Model Selection */}
+            <div className={cn(
+              "flex p-0.5 rounded-lg border ml-1 hidden sm:flex transition-all duration-500",
+              incognitoMode ? "bg-purple-950/20 border-purple-500/10" : "bg-muted/30 border-border/40"
+            )}>
               <button
-                onClick={() => setModelDropdownOpen((v) => !v)}
-                className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${
-                  modelDropdownOpen
-                    ? "bg-accent/10 text-accent"
-                    : "text-muted-foreground/50 hover:bg-muted/40"
-                }`}
+                onClick={() => setIncognitoMode(false)}
+                className={cn(
+                  "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10.5px] font-semibold transition-all duration-200",
+                  !incognitoMode
+                    ? "bg-background shadow-sm text-foreground"
+                    : (incognitoMode ? "text-purple-400/40 hover:text-purple-300" : "text-muted-foreground/50 hover:text-muted-foreground")
+                )}
               >
-                <span
-                  className={`w-3.5 h-3.5 rounded-full flex items-center justify-center ${incognitoMode ? "bg-purple-500" : "gradient-accent"}`}
-                >
-                  {incognitoMode ? (
-                    <svg
-                      className="w-2 h-2 text-white"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                      <path
-                        fillRule="evenodd"
-                        d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  ) : (
-                    <Sparkles className="w-2 h-2 text-white" />
-                  )}
-                </span>
-                {incognitoMode ? "Incognito" : "arc-1a"}
-                <ChevronDown
-                  className={`w-2.5 h-2.5 opacity-60 transition-transform duration-200 ${modelDropdownOpen ? "rotate-180" : ""}`}
-                />
+                <Sparkles className={cn("w-3 h-3", !incognitoMode ? "text-accent" : "")} />
+                arc-1a
               </button>
-
-              {modelDropdownOpen && (
-                <div className="absolute bottom-full left-0 mb-2 w-48 rounded-xl border border-border/50 bg-background shadow-float overflow-hidden z-50">
-                  {/* arc-1a option */}
-                  <button
-                    onClick={() => {
-                      setIncognitoMode(false);
-                      setModelDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-[12px] transition-all hover:bg-muted/50 ${!incognitoMode ? "text-accent" : "text-foreground/70"}`}
-                  >
-                    <span className="w-5 h-5 rounded-full gradient-accent flex items-center justify-center shrink-0">
-                      <Sparkles className="w-2.5 h-2.5 text-white" />
-                    </span>
-                    <div className="text-left">
-                      <p className="font-medium">arc-1a</p>
-                      <p className="text-[10px] text-muted-foreground/50">
-                        Standard mode
-                      </p>
-                    </div>
-                    {!incognitoMode && (
-                      <Check className="w-3 h-3 ml-auto text-accent" />
-                    )}
-                  </button>
-
-                  <div className="h-px bg-border/30 mx-2" />
-
-                  {/* Incognito option */}
-                  <button
-                    onClick={() => {
-                      setIncognitoMode(true);
-                      setModelDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-[12px] transition-all hover:bg-muted/50 ${incognitoMode ? "text-purple-400" : "text-foreground/70"}`}
-                  >
-                    <span className="w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center shrink-0">
-                      <svg
-                        className="w-2.5 h-2.5 text-purple-400"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                        <path
-                          fillRule="evenodd"
-                          d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </span>
-                    <div className="text-left">
-                      <p className="font-medium">Incognito</p>
-                      <p className="text-[10px] text-muted-foreground/50">
-                        No chat history saved
-                      </p>
-                    </div>
-                    {incognitoMode && (
-                      <Check className="w-3 h-3 ml-auto text-purple-400" />
-                    )}
-                  </button>
-                </div>
-              )}
+              <button
+                onClick={() => setIncognitoMode(true)}
+                className={cn(
+                  "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10.5px] font-semibold transition-all duration-200",
+                  incognitoMode
+                    ? "bg-purple-500/10 shadow-sm text-purple-400"
+                    : "text-muted-foreground/50 hover:text-muted-foreground"
+                )}
+              >
+                <svg
+                  className="w-3 h-3"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                  <path
+                    fillRule="evenodd"
+                    d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Incognito
+              </button>
             </div>
           </div>
           <button
             onClick={handleSend}
-            className="w-8 h-8 rounded-full bg-foreground flex items-center justify-center shrink-0 hover:opacity-80 transition-opacity"
+            className={cn(
+              "w-8 h-8 rounded-full flex items-center justify-center shrink-0 hover:opacity-80 transition-all",
+              incognitoMode ? "bg-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.4)]" : "bg-foreground"
+            )}
           >
-            <Send className="w-3 h-3 text-background" />
+            <Send className={cn("w-3 h-3", incognitoMode ? "text-white" : "text-background")} />
           </button>
         </div>
       </div>
@@ -625,15 +666,39 @@ const CanvasMain = () => {
   );
 
   return (
-    <div className="absolute inset-0 flex flex-col overflow-hidden">
-      <div className="flex-1 min-h-0 overflow-y-auto">
+    <div className={cn(
+      "absolute inset-0 flex flex-col overflow-hidden transition-colors duration-500",
+      incognitoMode ? "bg-[#0a0510]" : ""
+    )}>
+      {/* Safe Mode Indicator */}
+      {incognitoMode && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 backdrop-blur-md animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+            <span className="text-[11px] font-bold text-purple-400 uppercase tracking-widest">Safe mode on</span>
+          </div>
+        </div>
+      )}
+
+      {/* Conditional Background Glow */}
+      {incognitoMode && (
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-500/5 blur-[120px] rounded-full" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/5 blur-[120px] rounded-full" />
+        </div>
+      )}
+
+      <div className="flex-1 min-h-0 overflow-y-auto relative">
         {isEmpty ? (
           <div className="h-full flex flex-col items-center px-4 sm:px-6">
             <div className="flex-[4]" />
 
             {/* Content block */}
             <div className="w-full max-w-[660px] flex flex-col items-center">
-              <div className="relative w-12 h-12 sm:w-12 sm:h-12 mb-3 shadow-glow-accent">
+              <div className={cn(
+                "relative w-18 h-18 sm:w-16 sm:h-16 mb-3 transition-all duration-500",
+                incognitoMode ? "shadow-[0_0_40px_rgba(168,85,247,0.4)] scale-110" : "shadow-glow-accent"
+              )}>
                 <Image
                   src="/logo.png"
                   alt="Rivinity Logo"
@@ -642,7 +707,10 @@ const CanvasMain = () => {
                   priority
                 />
               </div>
-              <p className="text-[10px] text-muted-foreground/40 tracking-widest uppercase mb-2">
+              <p className={cn(
+                "text-[10px] tracking-widest uppercase mb-2 transition-colors",
+                incognitoMode ? "text-purple-400/40" : "text-muted-foreground/40"
+              )}>
                 {new Date().toLocaleDateString("en-US", {
                   weekday: "long",
                   month: "long",
@@ -650,10 +718,16 @@ const CanvasMain = () => {
                   year: "numeric",
                 })}
               </p>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-foreground/85 text-center leading-tight tracking-tight mb-1">
+              <h1 className={cn(
+                "text-2xl sm:text-3xl lg:text-4xl font-semibold text-center leading-tight tracking-tight mb-1 transition-colors",
+                incognitoMode ? "text-purple-100" : "text-foreground/85"
+              )}>
                 What can I help you build?
               </h1>
-              <div className="h-0.5 w-12 rounded-full gradient-accent mt-3 mb-4 sm:mb-5" />
+              <div className={cn(
+                "h-0.5 w-12 rounded-full mt-3 mb-4 sm:mb-5 transition-all duration-500",
+                incognitoMode ? "bg-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.5)]" : "gradient-accent"
+              )} />
               <div className="w-full mb-4">{inputArea}</div>
 
               <div className="w-full">
@@ -668,7 +742,10 @@ const CanvasMain = () => {
             <div className="flex-[1.5]" />
 
             <div className="w-full flex justify-center py-4 shrink-0">
-              <p className="text-[10px] text-muted-foreground/30">
+              <p className={cn(
+                "text-[10px] transition-colors",
+                incognitoMode ? "text-purple-400/20" : "text-muted-foreground/30"
+              )}>
                 Rivinity can make mistakes. Review generated code before
                 deploying.
               </p>
@@ -682,7 +759,12 @@ const CanvasMain = () => {
                 className={`group animate-float-in flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}
               >
                 <div
-                  className={`max-w-[85%] sm:max-w-[75%] px-3 sm:px-4 py-2.5 sm:py-3 text-[13px] sm:text-[14px] leading-relaxed ${msg.role === "user" ? "rounded-2xl rounded-br-lg gradient-accent text-primary-foreground" : "rounded-2xl rounded-bl-lg glass border border-glass text-foreground/80"}`}
+                  className={cn(
+                    "max-w-[85%] sm:max-w-[75%] px-3 sm:px-4 py-2.5 sm:py-3 text-[13px] sm:text-[14px] leading-relaxed transition-all duration-300",
+                    msg.role === "user"
+                      ? (incognitoMode ? "rounded-2xl rounded-br-lg bg-gradient-to-br from-purple-600 to-indigo-600 text-white shadow-[0_4px_15px_rgba(168,85,247,0.2)]" : "rounded-2xl rounded-br-lg gradient-accent text-primary-foreground")
+                      : (incognitoMode ? "rounded-2xl rounded-bl-lg bg-purple-900/10 border border-purple-500/10 text-purple-100/80" : "rounded-2xl rounded-bl-lg glass border border-glass text-foreground/80")
+                  )}
                 >
                   {msg.content}
                 </div>
@@ -697,7 +779,10 @@ const CanvasMain = () => {
       </div>
 
       {!isEmpty && (
-        <div className="px-3 sm:px-6 pb-3 sm:pb-4 pt-2 flex justify-center shrink-0 border-t border-border/30">
+        <div className={cn(
+          "px-3 sm:px-6 pb-3 sm:pb-4 pt-2 flex justify-center shrink-0 border-t transition-colors duration-500",
+          incognitoMode ? "border-purple-500/10 bg-purple-950/5" : "border-border/30"
+        )}>
           {inputArea}
         </div>
       )}

@@ -52,16 +52,7 @@ export function FAQSection() {
         transition={{ duration: 0.6 }}
         className="text-center mb-12"
       >
-        <motion.span
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-accent/10 to-highlight/10 border border-accent/20 text-sm font-medium text-foreground mb-6"
-        >
-          <MessageCircle className="w-4 h-4 text-accent" />
-          FAQ
-        </motion.span>
+
 
         <h2 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">
           Frequently Asked <span className="text-gradient">Questions</span>

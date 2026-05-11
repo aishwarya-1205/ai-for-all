@@ -50,16 +50,7 @@ export function PricingSection() {
           viewport={{ once: true }}
           className="mx-auto mb-12 md:mb-16 max-w-2xl text-center"
         >
-          <motion.span
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-3 py-1 mb-6 text-xs font-mono uppercase tracking-wider rounded-full border border-border bg-secondary/50 text-muted-foreground"
-          >
-            <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-accent" />
-            Transparent Pricing
-          </motion.span>
+
 
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-balance text-foreground">
             Scale Intelligence,{" "}

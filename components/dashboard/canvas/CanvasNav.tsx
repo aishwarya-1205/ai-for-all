@@ -5,6 +5,8 @@ import SettingsModal from "../shared/SettingsModal";
 import ReactDOM from "react-dom";
 import { User, Settings, Download, LogOut } from "lucide-react";
 
+import { AnimatedAvatar } from "@/components/ui/animated-avatar";
+
 const Portal = ({ children }: { children: React.ReactNode }) =>
   typeof document !== "undefined"
     ? ReactDOM.createPortal(children, document.body)
@@ -17,6 +19,9 @@ interface CanvasNavProps {
   showModelSelector?: boolean;
 }
 
+import { useSafeMode } from "@/lib/safe-mode-context";
+import { cn } from "@/lib/utils";
+
 const CanvasNav = ({
   rightPanelOpen,
   setRightPanelOpen,
@@ -25,6 +30,7 @@ const CanvasNav = ({
 }: CanvasNavProps) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const { incognitoMode } = useSafeMode();
 
   const profileBtnRef = useRef<HTMLButtonElement>(null);
   const profilePanelRef = useRef<HTMLDivElement>(null);
@@ -50,13 +56,12 @@ const CanvasNav = ({
   return (
     <>
       <div
-        className="h-[52px] flex items-center justify-between px-3 sm:px-5 shrink-0 z-10"
-        style={{
-          backdropFilter: "blur(24px)",
-          WebkitBackdropFilter: "blur(24px)",
-          background: "rgba(255,255,255,0.02)",
-          borderBottom: "1px solid rgba(255,255,255,0.05)",
-        }}
+        className={cn(
+          "h-[52px] flex items-center justify-between px-3 sm:px-5 shrink-0 z-10 transition-all duration-500",
+          incognitoMode 
+            ? "bg-purple-950/10 border-b border-purple-500/10 backdrop-blur-xl" 
+            : "bg-white/5 border-b border-white/5 backdrop-blur-xl"
+        )}
       >
         {/* Left spacer — same width as right buttons area to keep center truly centered */}
         <div className="w-10 sm:w-16 flex items-center" />
@@ -66,11 +71,12 @@ const CanvasNav = ({
           {setRightPanelOpen && (
             <button
               onClick={() => setRightPanelOpen(!rightPanelOpen)}
-              className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 ${
+              className={cn(
+                "w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200",
                 rightPanelOpen
-                  ? "bg-accent/10 text-[#ff7a18]"
-                  : "text-muted-foreground/50 hover:text-foreground/80 hover:bg-muted/60"
-              }`}
+                  ? (incognitoMode ? "bg-purple-500/20 text-purple-400" : "bg-accent/10 text-accent")
+                  : (incognitoMode ? "text-purple-400/40 hover:text-purple-300 hover:bg-purple-500/10" : "text-muted-foreground/50 hover:text-foreground/80 hover:bg-muted/60")
+              )}
             >
               <SquareArrowRight
                 className={`w-4 h-4 transition-transform duration-300 ${rightPanelOpen ? "rotate-180" : ""}`}
@@ -81,13 +87,14 @@ const CanvasNav = ({
           <button
             ref={profileBtnRef}
             onClick={() => setProfileOpen((v) => !v)}
-            className={`w-8 h-8 rounded-xl gradient-accent flex items-center justify-center text-white text-[12px] font-bold transition-all duration-200 hover:opacity-90 shadow-sm ${
+            className={cn(
+              "w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 hover:opacity-90",
               profileOpen
-                ? "ring-2 ring-[#ff7a18]/30 ring-offset-1 ring-offset-background"
+                ? (incognitoMode ? "ring-2 ring-purple-500/40" : "ring-2 ring-accent/30")
                 : ""
-            }`}
+            )}
           >
-            JD
+            <AnimatedAvatar name="John Doe" size={32} className="rounded-xl shadow-sm" />
           </button>
         </div>
       </div>
@@ -97,7 +104,12 @@ const CanvasNav = ({
         <Portal>
           <div
             ref={profilePanelRef}
-            className="glass-strong border border-border/40 shadow-float overflow-hidden animate-in fade-in zoom-in-95 duration-200 rounded-xl"
+            className={cn(
+              "border shadow-float overflow-hidden animate-in fade-in zoom-in-95 duration-200 rounded-xl transition-colors duration-500",
+              incognitoMode 
+                ? "bg-[#0f0815] border-purple-500/20 text-purple-100" 
+                : "glass-strong border-border/40"
+            )}
             style={{
               position: "fixed",
               top:
@@ -110,15 +122,19 @@ const CanvasNav = ({
               zIndex: 9999,
             }}
           >
-            <div className="px-4 py-4 border-b border-border/40 flex items-center gap-3 bg-muted/20">
-              <div className="w-10 h-10 rounded-xl gradient-accent flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm">
-                JD
-              </div>
+            <div className={cn(
+              "px-4 py-4 border-b flex items-center gap-3",
+              incognitoMode ? "border-purple-500/10 bg-purple-500/5" : "border-border/40 bg-muted/20"
+            )}>
+              <AnimatedAvatar name="John Doe" size={40} className="rounded-xl shadow-sm" />
               <div className="min-w-0">
-                <p className="text-[13px] font-semibold text-foreground truncate tracking-tight">
+                <p className="text-[13px] font-semibold truncate tracking-tight">
                   John Doe
                 </p>
-                <p className="text-[11px] text-muted-foreground/60 truncate">
+                <p className={cn(
+                  "text-[11px] truncate",
+                  incognitoMode ? "text-purple-400/40" : "text-muted-foreground/60"
+                )}>
                   john@rivinity.ai
                 </p>
               </div>
@@ -137,16 +153,30 @@ const CanvasNav = ({
                     }
                     setProfileOpen(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12.5px] font-medium text-foreground/70 hover:bg-muted hover:text-foreground transition-all duration-150"
+                  className={cn(
+                    "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12.5px] font-medium transition-all duration-150",
+                    incognitoMode 
+                      ? "text-purple-100/70 hover:bg-purple-500/10 hover:text-purple-100" 
+                      : "text-foreground/70 hover:bg-muted hover:text-foreground"
+                  )}
                 >
-                  <item.icon className="w-3.5 h-3.5 text-muted-foreground/50" />
+                  <item.icon className={cn(
+                    "w-3.5 h-3.5",
+                    incognitoMode ? "text-purple-400/40" : "text-muted-foreground/50"
+                  )} />
                   {item.label}
                 </button>
               ))}
-              <div className="h-px bg-border/40 my-1.5 mx-2" />
+              <div className={cn(
+                "h-px my-1.5 mx-2",
+                incognitoMode ? "bg-purple-500/10" : "bg-border/40"
+              )} />
               <button
                 onClick={() => setProfileOpen(false)}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12.5px] font-medium text-red-500/80 hover:bg-red-500/10 hover:text-red-500 transition-all duration-150"
+                className={cn(
+                  "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12.5px] font-medium transition-all duration-150",
+                  incognitoMode ? "text-red-400/80 hover:bg-red-500/5 hover:text-red-400" : "text-red-500/80 hover:bg-red-500/10 hover:text-red-500"
+                )}
               >
                 <LogOut className="w-3.5 h-3.5" />
                 Sign out

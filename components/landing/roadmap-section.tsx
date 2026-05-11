@@ -170,12 +170,7 @@ export function RoadmapSection() {
         viewport={{ once: true }}
         className="text-center mb-12 md:mb-16"
       >
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-highlight/10 border border-highlight/20 mb-6 font-medium text-highlight">
-          <Rocket className="w-4 h-4" />
-          <span className="text-sm">
-            Product Roadmap
-          </span>
-        </div>
+
 
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6 text-balance">
           Building the Future of{" "}

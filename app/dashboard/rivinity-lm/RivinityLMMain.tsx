@@ -360,7 +360,7 @@ const RivinityLMMain = ({
 
           <div className="w-full max-w-[740px] flex flex-col items-center">
             {/* Orb */}
-            <div className="relative w-10 h-10 sm:w-12 sm:h-12 mb-3 shadow-glow-accent">
+            <div className="relative w-18 h-18 sm:w-16 sm:h-16 mb-3 shadow-glow-accent">
               <Image
                 src="/logo.png"
                 alt="Rivinity Logo"
@@ -397,8 +397,8 @@ const RivinityLMMain = ({
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
                       className={`group relative flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium transition-all duration-150 shrink-0 ${activeTab === tab.id
-                          ? "bg-muted/60 text-foreground"
-                          : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/60"
+                        ? "bg-muted/60 text-foreground"
+                        : "text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/60"
                         }`}
                     >
                       <tab.icon className="w-3.5 h-3.5 shrink-0" />

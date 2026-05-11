@@ -14,7 +14,17 @@ interface DashboardLayoutProps {
   showModelSelector?: boolean;
 }
 
-export default function DashboardLayout({
+import { SafeModeProvider, useSafeMode } from "@/lib/safe-mode-context";
+
+export default function DashboardLayout(props: DashboardLayoutProps) {
+  return (
+    <SafeModeProvider>
+      <DashboardLayoutInner {...props} />
+    </SafeModeProvider>
+  );
+}
+
+function DashboardLayoutInner({
   children,
   rightPanel,
   navTitle,
@@ -23,6 +33,7 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const { incognitoMode } = useSafeMode();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -39,7 +50,10 @@ export default function DashboardLayout({
   }, []);
 
   return (
-    <div className="h-screen flex bg-background overflow-hidden relative">
+    <div className={cn(
+      "h-screen flex transition-colors duration-500 overflow-hidden relative",
+      incognitoMode ? "bg-[#0a0510] text-slate-300" : "bg-background"
+    )}>
       {/* Mobile Sidebar Overlay backdrop */}
       <AnimatePresence>
         {isMobile && sidebarOpen && (
@@ -69,7 +83,8 @@ export default function DashboardLayout({
       {/* Sidebar Container */}
       <motion.div
         className={cn(
-          "shrink-0 transition-all duration-300 ease-in-out fixed inset-y-0 left-0 z-40 lg:relative lg:inset-auto lg:z-auto border-r border-border/40 bg-background",
+          "shrink-0 transition-all duration-500 ease-in-out fixed inset-y-0 left-0 z-40 lg:relative lg:inset-auto lg:z-auto border-r",
+          incognitoMode ? "border-purple-500/10 bg-[#0a0510]" : "border-border/40 bg-background",
           !sidebarOpen && "lg:border-none",
         )}
         animate={{
@@ -84,22 +99,15 @@ export default function DashboardLayout({
 
       {/* Main Container */}
       <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
-        {/*
-          Floating sidebar toggle:
-          - On desktop: hidden when sidebar is already open
-          - On mobile: hidden whenever the sidebar OR right panel is open
-            (user should use the in-panel X button to close instead)
-        */}
         <button
           onClick={() => {
             if (isMobile && rightPanelOpen) setRightPanelOpen(false);
             setSidebarOpen((v) => !v);
           }}
           className={cn(
-            "absolute top-3 left-3 z-50 w-8 h-8 rounded-xl glass border border-glass shadow-float flex items-center justify-center text-muted-foreground/60 hover:text-foreground/80 hover:shadow-glow-accent transition-all duration-200",
-            // Desktop: hide when sidebar is open
+            "absolute top-3 left-3 z-50 w-8 h-8 rounded-xl glass border shadow-float flex items-center justify-center transition-all duration-200",
+            incognitoMode ? "border-purple-500/20 text-purple-400 hover:bg-purple-500/10" : "border-glass text-muted-foreground/60 hover:text-foreground/80 hover:shadow-glow-accent",
             sidebarOpen && "lg:hidden",
-            // Mobile: hide when either panel is open
             isMobile && (sidebarOpen || rightPanelOpen) && "hidden",
           )}
         >
@@ -122,11 +130,12 @@ export default function DashboardLayout({
             {children}
           </main>
 
-          {/* Right Panel Container — desktop only inline, mobile overlay */}
+          {/* Right Panel Container */}
           {rightPanel && (
             <motion.div
               className={cn(
-                "bg-background z-40 transition-all duration-300 overflow-hidden shrink-0",
+                "z-40 transition-all duration-500 overflow-hidden shrink-0",
+                incognitoMode ? "bg-[#0a0510] border-l border-purple-500/10" : "bg-background border-l border-border/40",
                 isMobile
                   ? "fixed right-0 top-0 bottom-0 shadow-2xl"
                   : "relative h-full",

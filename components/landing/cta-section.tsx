@@ -167,9 +167,16 @@ max-w-md sm:max-w-2xl mx-auto mt-6
           </Link>
 
           {/* Secondary Button */}
-          <button className="h-14 px-10 text-base font-semibold border-2 border-border rounded-2xl bg-background/50 backdrop-blur-sm hover:bg-secondary/50 hover:border-foreground/20 transition duration-300 hover:scale-105">
-            Contact Sales
-          </button>
+          <div className="transition duration-300 hover:scale-105 hover:shadow-[0_10px_40px_rgba(255,122,24,0.20)] rounded-2xl cursor-pointer">
+            <MovingBorderButton
+              borderRadius="1rem"
+              className="bg-background/70 backdrop-blur-sm text-foreground px-10 py-4 font-semibold text-base w-full h-full"
+              containerClassName="h-14"
+              duration={3000}
+            >
+              Contact Sales
+            </MovingBorderButton>
+          </div>
         </motion.div>
 
         {/* Trust text */}

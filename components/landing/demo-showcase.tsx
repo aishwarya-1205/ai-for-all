@@ -56,10 +56,7 @@ export function DemoShowcase() {
     <SectionWrapper className="bg-background" id="experience">
       {/* Header */}
       <div className="text-center mb-12">
-        <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 text-sm font-medium mb-6 text-foreground">
-          <Sparkles className="w-4 h-4 text-accent" />
-          See it in Action
-        </span>
+
 
         <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground">
           Experience <span className="text-gradient">Rivinity</span>
@@ -72,7 +69,7 @@ export function DemoShowcase() {
 
       {/* Tabs */}
       <div className="flex justify-center mb-8 sm:mb-12">
-        <div className="flex flex-wrap justify-center gap-2 p-2 rounded-xl bg-card border border-border">
+        <div className="w-full max-w-5xl flex flex-wrap justify-between gap-2 p-2 rounded-xl bg-card border border-border">
           {demos.map((demo) => (
             <button
               key={demo.id}
