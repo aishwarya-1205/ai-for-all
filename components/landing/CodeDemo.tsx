@@ -1,540 +1,393 @@
 "use client";
 
-import { memo, useEffect, useRef, useState } from "react";
-import { CheckCircle2, Circle, Loader, Sparkles, Terminal } from "lucide-react";
+import { memo, useState, useEffect, useRef, useCallback } from "react";
+import { Paperclip, ArrowUp, Sparkles, RotateCcw, Code2, Terminal, Check, Copy } from "lucide-react";
 
-/* ================================================================
-   TOKEN-BASED SYNTAX HIGHLIGHTER
-   Handles: keywords, strings, numbers, comments, functions, ops
-================================================================ */
-type TokenType =
-  | "keyword"
-  | "string"
-  | "number"
-  | "comment"
-  | "function"
-  | "variable"
-  | "operator"
-  | "plain"
-  | "type";
+/* ─────────────────────────────────────────────────────────
+   CONSTANTS
+   ───────────────────────────────────────────────────────── */
+const PROMPT = "Build a high-performance React component with Framer Motion animations";
 
-interface Token {
-  type: TokenType;
-  text: string;
-}
+const RESPONSE_LINES = [
+  "Absolutely! I've architected a production-ready component for you:",
+  "",
+  "→  Modular design with strict separation of concerns",
+  "→  Framer Motion integration for liquid-smooth transitions",
+  "→  Optimized re-renders using memo and useCallback",
+  "",
+  "Starting generation now...",
+];
 
-const KEYWORDS = new Set([
-  "const",
-  "let",
-  "await",
-  "async",
-  "for",
-  "of",
-  "return",
-  "if",
-  "else",
-  "true",
-  "false",
-  "new",
-  "import",
-  "from",
-  "export",
-  "default",
-]);
-const TYPES = new Set([
-  "string",
-  "number",
-  "boolean",
-  "void",
-  "Promise",
-  "Response",
-]);
+const RESPONSE_TEXT = RESPONSE_LINES.join("\n");
 
-function tokenize(line: string): Token[] {
-  const tokens: Token[] = [];
-  let i = 0;
-  while (i < line.length) {
-    // Comment
-    if (line[i] === "/" && line[i + 1] === "/") {
-      tokens.push({ type: "comment", text: line.slice(i) });
-      break;
-    }
-    // String
-    if (line[i] === '"' || line[i] === "'" || line[i] === "`") {
-      const q = line[i];
-      let j = i + 1;
-      while (j < line.length && line[j] !== q) j++;
-      tokens.push({ type: "string", text: line.slice(i, j + 1) });
-      i = j + 1;
-      continue;
-    }
-    // Number
-    if (/[0-9]/.test(line[i])) {
-      let j = i;
-      while (j < line.length && /[0-9.]/.test(line[j])) j++;
-      tokens.push({ type: "number", text: line.slice(i, j) });
-      i = j;
-      continue;
-    }
-    // Word
-    if (/[a-zA-Z_$]/.test(line[i])) {
-      let j = i;
-      while (j < line.length && /[a-zA-Z0-9_$]/.test(line[j])) j++;
-      const word = line.slice(i, j);
-      const next = line[j];
-      const type: TokenType = KEYWORDS.has(word)
-        ? "keyword"
-        : TYPES.has(word)
-          ? "type"
-          : next === "("
-            ? "function"
-            : "variable";
-      tokens.push({ type, text: word });
-      i = j;
-      continue;
-    }
-    // Operator / punctuation cluster
-    if (/[=><+\-*/%!&|^~?:.,;{}()[\]]/.test(line[i])) {
-      tokens.push({ type: "operator", text: line[i] });
-      i++;
-      continue;
-    }
-    tokens.push({ type: "plain", text: line[i] });
-    i++;
-  }
-  return tokens;
-}
+const CODE_SNIPPET = `import { motion } from "framer-motion";
+import { memo } from "react";
 
-const TOKEN_COLORS: Record<TokenType, string> = {
-  keyword: "#c084fc", // purple — your highlight hue
-  string: "#86efac", // green
-  number: "#fbbf24", // amber
-  comment: "#6b7280", // gray
-  function: "#60a5fa", // blue
-  variable: "#e2e8f0", // near-white
-  operator: "#94a3b8", // slate
-  type: "#f9a8d4", // pink
-  plain: "#e2e8f0",
-};
-
-function SyntaxLine({ line }: { line: string }) {
-  const tokens = tokenize(line);
+export const AnimatedCard = memo(({ title, desc }) => {
   return (
-    <>
-      {tokens.map((t, i) => (
-        <span key={i} style={{ color: TOKEN_COLORS[t.type] }}>
-          {t.text}
-        </span>
-      ))}
-    </>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ scale: 1.05 }}
+      className="p-6 rounded-2xl bg-card border"
+    >
+      <h3 className="text-xl font-bold">{title}</h3>
+      <p className="text-muted-foreground">{desc}</p>
+    </motion.div>
+  );
+});`;
+
+// Timing constants (ms)
+const PROMPT_CHAR_DELAY = 30; 
+const PROMPT_DONE_PAUSE = 600; 
+const THINKING_DURATION = 900; 
+const RESPONSE_CHAR_DELAY = 12; 
+const CODE_CHAR_DELAY = 6; // Fast streaming for code
+const DONE_PAUSE = 4000; 
+const INITIAL_DELAY = 500; 
+
+/* ─────────────────────────────────────────────────────────
+   TYPES
+   ───────────────────────────────────────────────────────── */
+type Phase = "idle" | "typing-prompt" | "sent" | "thinking" | "streaming-text" | "streaming-code" | "done";
+
+/* ─────────────────────────────────────────────────────────
+   COMPONENTS
+   ───────────────────────────────────────────────────────── */
+function Cursor() {
+  return (
+    <span
+      aria-hidden
+      style={{
+        display: "inline-block",
+        width: 2,
+        height: "1em",
+        verticalAlign: "text-bottom",
+        background: "var(--accent)",
+        borderRadius: 1,
+        marginLeft: 1,
+        animation: "rivCursor .85s step-end infinite",
+      }}
+    />
   );
 }
 
-/* ================================================================
-   CODE CONTENT
-================================================================ */
-const CODE_LINES = [
-  `import { Rivinity } from "@rivinity/sdk";`,
-  ``,
-  `const client = new Rivinity({`,
-  `  apiKey: process.env.RIVINITY_API_KEY,`,
-  `  model: "rivinity-turbo",`,
-  `});`,
-  ``,
-  `// Stream a completion`,
-  `const stream = await client.chat.stream({`,
-  `  messages: [{ role: "user", content: prompt }],`,
-  `  temperature: 0.7,`,
-  `  maxTokens: 2048,`,
-  `});`,
-  ``,
-  `for await (const chunk of stream) {`,
-  `  process.stdout.write(chunk.delta.content);`,
-  `}`,
-];
+function ThinkingDots() {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          style={{
+            display: "inline-block",
+            width: 5,
+            height: 5,
+            borderRadius: "50%",
+            background: "var(--muted-foreground)",
+            opacity: 0.5,
+            animation: "rivDot 1s ease-in-out infinite",
+            animationDelay: `${i * 0.15}s`,
+          }}
+        />
+      ))}
+    </span>
+  );
+}
 
-const OUTPUT_STEPS = [
-  { icon: "spin", label: "Connecting to Rivinity Turbo…" },
-  { icon: "check", label: "Model loaded · 2048 token context" },
-  { icon: "check", label: "Streaming response initiated" },
-  { icon: "spark", label: "Output complete · 312 tokens/s" },
-];
-
-// ms per line reveal
-const LINE_DELAY = 110;
-// hold after code done before showing output
-const OUTPUT_START_DELAY = 400;
-// ms per output step
-const OUTPUT_STEP_DELAY = 500;
-
-/* ================================================================
-   CODE DEMO COMPONENT
-================================================================ */
+/* ─────────────────────────────────────────────────────────
+   CODE DEMO
+   ───────────────────────────────────────────────────────── */
 export const CodeDemo = memo(function CodeDemo() {
-  const [visibleLines, setVisibleLines] = useState(0);
-  const [outputStep, setOutputStep] = useState(-1); // -1 = hidden
-  const rafRef = useRef(0);
-  const timerRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const [phase, setPhase] = useState<Phase>("idle");
+  const [promptChars, setPromptChars] = useState(0);
+  const [respChars, setRespChars] = useState(0);
+  const [codeChars, setCodeChars] = useState(0);
 
-  const clearAll = () => {
+  const rafRef = useRef<number>(0);
+  const stateRef = useRef({ phase: "idle" as Phase, promptChars: 0, respChars: 0, codeChars: 0 });
+
+  stateRef.current = { phase, promptChars, respChars, codeChars };
+
+  const runDemo = useCallback(() => {
     cancelAnimationFrame(rafRef.current);
-    timerRef.current.forEach(clearTimeout);
-    timerRef.current = [];
-  };
+    setPhase("idle");
+    setPromptChars(0);
+    setRespChars(0);
+    setCodeChars(0);
 
-  useEffect(() => {
-    clearAll();
-    setVisibleLines(0);
-    setOutputStep(-1);
+    let startTime: number | null = null;
 
-    // Reveal lines one by one
-    CODE_LINES.forEach((_, i) => {
-      const id = setTimeout(() => setVisibleLines(i + 1), 600 + i * LINE_DELAY);
-      timerRef.current.push(id);
-    });
+    const T_PROMPT_START = INITIAL_DELAY;
+    const T_PROMPT_END = T_PROMPT_START + PROMPT.length * PROMPT_CHAR_DELAY;
+    const T_SENT = T_PROMPT_END + PROMPT_DONE_PAUSE;
+    const T_THINKING = T_SENT + 50;
+    const T_TEXT_START = T_THINKING + THINKING_DURATION;
+    const T_TEXT_END = T_TEXT_START + RESPONSE_TEXT.length * RESPONSE_CHAR_DELAY;
+    const T_CODE_START = T_TEXT_END + 400;
+    const T_CODE_END = T_CODE_START + CODE_SNIPPET.length * CODE_CHAR_DELAY;
+    const T_DONE = T_CODE_END + 100;
+    const T_RESTART = T_DONE + DONE_PAUSE;
 
-    const codeDone = 600 + CODE_LINES.length * LINE_DELAY + OUTPUT_START_DELAY;
+    function tick(ts: number) {
+      if (startTime === null) startTime = ts;
+      const elapsed = ts - startTime;
 
-    // Then reveal output steps
-    OUTPUT_STEPS.forEach((_, i) => {
-      const id = setTimeout(
-        () => setOutputStep(i),
-        codeDone + i * OUTPUT_STEP_DELAY,
-      );
-      timerRef.current.push(id);
-    });
+      if (elapsed < T_PROMPT_START) {
+        // idle
+      } else if (elapsed < T_PROMPT_END) {
+        const chars = Math.floor((elapsed - T_PROMPT_START) / PROMPT_CHAR_DELAY);
+        if (stateRef.current.phase !== "typing-prompt") setPhase("typing-prompt");
+        if (stateRef.current.promptChars !== chars) setPromptChars(chars);
+      } else if (elapsed < T_SENT) {
+        if (stateRef.current.promptChars !== PROMPT.length) setPromptChars(PROMPT.length);
+        if (stateRef.current.phase !== "typing-prompt") setPhase("typing-prompt");
+      } else if (elapsed < T_THINKING) {
+        if (stateRef.current.phase !== "sent") setPhase("sent");
+      } else if (elapsed < T_TEXT_START) {
+        if (stateRef.current.phase !== "thinking") setPhase("thinking");
+      } else if (elapsed < T_TEXT_END) {
+        const chars = Math.floor((elapsed - T_TEXT_START) / RESPONSE_CHAR_DELAY);
+        if (stateRef.current.phase !== "streaming-text") setPhase("streaming-text");
+        if (stateRef.current.respChars !== chars) setRespChars(chars);
+      } else if (elapsed < T_CODE_START) {
+        if (stateRef.current.respChars !== RESPONSE_TEXT.length) setRespChars(RESPONSE_TEXT.length);
+        if (stateRef.current.phase !== "streaming-text") setPhase("streaming-text");
+      } else if (elapsed < T_CODE_END) {
+        const chars = Math.floor((elapsed - T_CODE_START) / CODE_CHAR_DELAY);
+        if (stateRef.current.phase !== "streaming-code") setPhase("streaming-code");
+        if (stateRef.current.codeChars !== chars) setCodeChars(chars);
+      } else if (elapsed < T_DONE) {
+        if (stateRef.current.codeChars !== CODE_SNIPPET.length) setCodeChars(CODE_SNIPPET.length);
+        if (stateRef.current.phase !== "done") setPhase("done");
+      } else if (elapsed < T_RESTART) {
+        if (stateRef.current.phase !== "done") setPhase("done");
+      } else {
+        startTime = ts;
+        setPhase("idle");
+        setPromptChars(0);
+        setRespChars(0);
+        setCodeChars(0);
+      }
 
-    return clearAll;
+      rafRef.current = requestAnimationFrame(tick);
+    }
+
+    rafRef.current = requestAnimationFrame(tick);
   }, []);
 
+  useEffect(() => {
+    runDemo();
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [runDemo]);
+
+  const isTyping = phase === "typing-prompt";
+  const showPrompt = phase !== "idle";
+  const showThink = phase === "thinking";
+  const showRespText = phase === "streaming-text" || phase === "streaming-code" || phase === "done";
+  const showRespCode = phase === "streaming-code" || phase === "done";
+  const isDone = phase === "done";
+
+  const visiblePrompt = PROMPT.slice(0, promptChars);
+  const visibleResponse = RESPONSE_TEXT.slice(0, respChars);
+  const visibleCode = CODE_SNIPPET.slice(0, codeChars);
+
   return (
-    <div
-      style={{
+    <>
+      <style>{`
+        @keyframes rivCursor { 0%,100%{opacity:1} 50%{opacity:0} }
+        @keyframes rivDot { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-4px)} }
+        @keyframes rivSlideUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes rivFadeIn { from{opacity:0} to{opacity:1} }
+      `}</style>
+
+      <div style={{
         display: "flex",
         flexDirection: "column",
+        height: "100%",
+        padding: "20px 20px 16px",
         gap: 12,
-        fontFamily: "'Geist Mono', 'Fira Code', 'Cascadia Code', monospace",
-      }}
-    >
-      {/* ── Editor card ───────────────────────────────────────── */}
-      <div
-        style={{
-          background: "#0d0d14",
-          borderRadius: 16,
+        fontFamily: "var(--font-sans, 'Space Grotesk', sans-serif)",
+      }}>
+        {/* Response bubble */}
+        <div style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "flex-end",
+          gap: 10,
           overflow: "hidden",
-          border: "1px solid rgba(108,99,255,0.18)",
-          boxShadow:
-            "0 0 0 1px rgba(108,99,255,0.08), 0 8px 40px rgba(0,0,0,0.35)",
-        }}
-      >
-        {/* Tab bar */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 0,
-            borderBottom: "1px solid rgba(255,255,255,0.06)",
-            background: "#0a0a10",
-          }}
-        >
-          {/* Active tab */}
-          <div
-            style={{
+        }}>
+          {/* User prompt bubble */}
+          {showPrompt && (
+            <div style={{
               display: "flex",
-              alignItems: "center",
-              gap: 7,
-              padding: "9px 16px",
-              borderRight: "1px solid rgba(255,255,255,0.06)",
-              borderBottom: "2px solid var(--accent, #ff7a18)",
-              background: "#0d0d14",
-            }}
-          >
-            <span
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                background: "var(--accent, #ff7a18)",
-                display: "inline-block",
-                opacity: 0.85,
-              }}
-            />
-            <span
-              style={{
-                fontSize: 12,
-                color: "#e2e8f0",
-                letterSpacing: "0.01em",
-              }}
-            >
-              stream.ts
-            </span>
-          </div>
-          {/* Inactive tab */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 7,
-              padding: "9px 16px",
-              borderRight: "1px solid rgba(255,255,255,0.06)",
-            }}
-          >
-            <span style={{ fontSize: 12, color: "#4b5563" }}>config.ts</span>
-          </div>
-          <div style={{ flex: 1 }} />
-          {/* Live indicator */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "0 16px",
-            }}
-          >
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                background: "#22c55e",
-                display: "inline-block",
-                animation: "codeGlow 1.8s ease-in-out infinite",
-              }}
-            />
-            <span
-              style={{
-                fontSize: 11,
-                color: "#4b5563",
-                letterSpacing: "0.04em",
-              }}
-            >
-              LIVE
-            </span>
-          </div>
-        </div>
-
-        {/* Code area */}
-        <div style={{ padding: "18px 0 14px", minHeight: 240 }}>
-          {CODE_LINES.map((line, i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 0,
-                opacity: i < visibleLines ? 1 : 0,
-                transform:
-                  i < visibleLines ? "translateX(0)" : "translateX(-6px)",
-                transition: "opacity 0.2s ease, transform 0.2s ease",
-                minHeight: line === "" ? 10 : undefined,
-              }}
-            >
-              {/* Line number */}
-              <span
-                style={{
-                  width: 44,
-                  textAlign: "right",
-                  paddingRight: 20,
-                  fontSize: 12,
-                  lineHeight: "22px",
-                  color: "#2d3748",
-                  userSelect: "none",
-                  flexShrink: 0,
-                }}
-              >
-                {i + 1}
-              </span>
-              {/* Highlighted line */}
-              <span
-                style={{
-                  fontSize: 12.5,
-                  lineHeight: "22px",
-                  whiteSpace: "pre",
-                  letterSpacing: "0.01em",
-                }}
-              >
-                {line ? <SyntaxLine line={line} /> : " "}
-              </span>
-              {/* Blinking cursor on last visible line while still typing */}
-              {i === visibleLines - 1 && visibleLines < CODE_LINES.length && (
-                <span
-                  style={{
-                    display: "inline-block",
-                    width: 2,
-                    height: "1em",
-                    background: "var(--accent, #ff7a18)",
-                    borderRadius: 1,
-                    marginLeft: 1,
-                    verticalAlign: "text-bottom",
-                    animation: "cdCursor .7s step-end infinite",
-                  }}
-                />
-              )}
+              justifyContent: "flex-end",
+              animation: phase === "typing-prompt" ? "none" : "rivSlideUp 0.3s ease both",
+            }}>
+              <div style={{
+                maxWidth: "80%",
+                background: "var(--foreground)",
+                color: "var(--background)",
+                borderRadius: "18px 18px 4px 18px",
+                padding: "10px 14px",
+                fontSize: 13,
+                lineHeight: 1.5,
+              }}>
+                {visiblePrompt}
+                {isTyping && <Cursor />}
+              </div>
             </div>
-          ))}
-        </div>
+          )}
 
-        {/* Status bar */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "7px 16px",
-            borderTop: "1px solid rgba(255,255,255,0.05)",
-            background: "#080810",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span
-              style={{
-                fontSize: 11,
-                color: "#6b7280",
-                letterSpacing: "0.03em",
-              }}
-            >
-              TypeScript
-            </span>
-            <span style={{ fontSize: 11, color: "#374151" }}>UTF-8</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span
-              style={{
-                fontSize: 11,
-                background:
-                  "linear-gradient(135deg, var(--accent,#ff7a18), var(--highlight,#6c63ff))",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                fontWeight: 600,
-                letterSpacing: "0.03em",
-              }}
-            >
-              Rivinity Turbo
-            </span>
-            <span style={{ fontSize: 11, color: "#374151" }}>·</span>
-            <span style={{ fontSize: 11, color: "#4b5563" }}>
-              Ln {visibleLines}, Col 1
-            </span>
-          </div>
-        </div>
-      </div>
+          {/* AI Response bubble */}
+          {(showThink || showRespText) && (
+            <div style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 8,
+              animation: "rivSlideUp 0.3s ease both",
+            }}>
+              <div style={{
+                width: 30,
+                height: 30,
+                borderRadius: "50%",
+                background: "var(--accent)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                border: "1px solid var(--border)",
+              }}>
+                <Code2 size={16} color="white" />
+              </div>
 
-      {/* ── Output / terminal card ────────────────────────────── */}
-      <div
-        style={{
-          background: "var(--secondary)",
-          border: "1px solid var(--border)",
-          borderRadius: 14,
-          overflow: "hidden",
-          opacity: outputStep >= 0 ? 1 : 0,
-          transform: outputStep >= 0 ? "translateY(0)" : "translateY(8px)",
-          transition: "opacity 0.4s ease, transform 0.4s ease",
-        }}
-      >
-        {/* Terminal header */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "9px 14px",
-            borderBottom: "1px solid var(--border)",
-          }}
-        >
-          <Terminal
-            size={13}
-            style={{ color: "var(--muted-foreground)", opacity: 0.6 }}
-          />
-          <span
-            style={{
-              fontSize: 12,
-              color: "var(--muted-foreground)",
-              opacity: 0.7,
-              letterSpacing: "0.02em",
-            }}
-          >
-            Output
-          </span>
-        </div>
+              <div style={{
+                flex: 1,
+                background: "var(--secondary)",
+                border: "1px solid var(--border)",
+                borderRadius: "4px 18px 18px 18px",
+                padding: "10px 14px",
+                fontSize: 12.5,
+                lineHeight: 1.65,
+                color: "var(--muted-foreground)",
+                wordBreak: "break-word",
+              }}>
+                {showThink && <ThinkingDots />}
+                {showRespText && (
+                  <div style={{ whiteSpace: "pre-wrap" }}>
+                    {visibleResponse}
+                    {phase === "streaming-text" && <Cursor />}
+                  </div>
+                )}
 
-        {/* Steps */}
-        <div
-          style={{
-            padding: "12px 14px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-          }}
-        >
-          {OUTPUT_STEPS.map((step, i) => {
-            const visible = i <= outputStep;
-            const isLast = i === OUTPUT_STEPS.length - 1;
-            const isActive = i === outputStep && !isLast;
-            return (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  opacity: visible ? 1 : 0,
-                  transform: visible ? "translateY(0)" : "translateY(6px)",
-                  transition: "opacity 0.3s ease, transform 0.3s ease",
-                }}
-              >
-                {/* Icon */}
-                <span
-                  style={{
-                    flexShrink: 0,
+                {showRespCode && (
+                  <div style={{
+                    marginTop: 12,
+                    background: "rgba(0,0,0,0.03)",
+                    borderRadius: 12,
+                    border: "1px solid var(--border)",
+                    overflow: "hidden",
+                    animation: "rivFadeIn 0.5s ease both",
+                  }}>
+                    <div style={{
+                      padding: "8px 12px",
+                      borderBottom: "1px solid var(--border)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      background: "rgba(0,0,0,0.02)",
+                    }}>
+                      <span style={{ fontSize: 10, fontWeight: 600, opacity: 0.5 }}>AnimatedCard.tsx</span>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <Terminal size={12} style={{ opacity: 0.3 }} />
+                        <Copy size={12} style={{ opacity: 0.3 }} />
+                      </div>
+                    </div>
+                    <pre style={{
+                      padding: 12,
+                      margin: 0,
+                      fontSize: 11,
+                      fontFamily: "var(--font-mono, monospace)",
+                      lineHeight: 1.5,
+                      color: "var(--foreground)",
+                      overflowX: "auto",
+                      background: "transparent",
+                    }}>
+                      {visibleCode}
+                      {phase === "streaming-code" && <Cursor />}
+                    </pre>
+                  </div>
+                )}
+
+                {isDone && (
+                  <div style={{
+                    marginTop: 10,
+                    paddingTop: 8,
+                    borderTop: "1px solid var(--border)",
                     display: "flex",
                     alignItems: "center",
-                  }}
-                >
-                  {step.icon === "spin" && isActive ? (
-                    <Loader
-                      size={13}
-                      style={{
-                        color: "var(--accent)",
-                        animation: "cdSpin 1s linear infinite",
-                      }}
-                    />
-                  ) : step.icon === "spark" ? (
-                    <Sparkles size={13} style={{ color: "var(--accent)" }} />
-                  ) : (
-                    <CheckCircle2
-                      size={13}
-                      style={{
-                        color: isActive ? "var(--muted-foreground)" : "#22c55e",
-                      }}
-                    />
-                  )}
-                </span>
-                <span
-                  style={{
-                    fontSize: 12.5,
-                    color:
-                      isLast && i === outputStep
-                        ? "var(--foreground)"
-                        : "var(--muted-foreground)",
-                    fontFamily: "'Geist Mono', monospace",
-                    letterSpacing: "0.01em",
-                    fontWeight: isLast && i === outputStep ? 500 : 400,
-                  }}
-                >
-                  {step.label}
-                </span>
+                    gap: 6,
+                    animation: "rivFadeIn 0.4s ease both",
+                  }}>
+                    <Sparkles size={11} style={{ color: "var(--accent)" }} />
+                    <span style={{ fontSize: 11 }}>Codebase generated successfully</span>
+                  </div>
+                )}
               </div>
-            );
-          })}
+            </div>
+          )}
+        </div>
+
+        {/* Input UI */}
+        <div style={{
+          background: "var(--card)",
+          border: "1px solid var(--border)",
+          borderRadius: 16,
+          padding: "14px 16px 12px",
+          boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
+        }}>
+          <div style={{
+            fontSize: 13.5,
+            color: "var(--muted-foreground)",
+            minHeight: 24,
+            marginBottom: 14,
+            opacity: 0.6,
+          }}>
+            Ask Rivinity to build something amazing...
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Paperclip size={16} style={{ color: "var(--muted-foreground)", opacity: 0.7 }} />
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 3,
+              border: "1px solid var(--border)",
+              borderRadius: 6,
+              padding: "2px 7px",
+              fontSize: 11,
+              color: "var(--muted-foreground)",
+              opacity: 0.7,
+            }}>
+              <span style={{ fontSize: 12 }}>⌘</span>
+              <span>+</span>
+              <span>K</span>
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: isDone ? "var(--accent)" : "var(--secondary)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+              {isDone ? <RotateCcw size={14} color="white" /> : <ArrowUp size={14} color="var(--muted-foreground)" />}
+            </div>
+          </div>
         </div>
       </div>
-
-      {/* Keyframes */}
-      <style>{`
-        @keyframes cdCursor { 0%,100%{opacity:1} 50%{opacity:0} }
-        @keyframes codeGlow  { 0%,100%{opacity:1;box-shadow:0 0 4px #22c55e} 50%{opacity:0.4;box-shadow:none} }
-        @keyframes cdSpin    { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-      `}</style>
-    </div>
+    </>
   );
 });
