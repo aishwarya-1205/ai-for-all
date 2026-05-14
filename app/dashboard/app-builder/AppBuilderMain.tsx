@@ -588,19 +588,19 @@ const AppBuilderMain = () => {
               incognitoMode ? "bg-purple-950/20 border-purple-500/10" : "bg-muted/30 border-border/40"
             )}>
               <button
-                onClick={() => setIncognitoMode(false)}
+                onClick={() => setIncognitoMode(!incognitoMode)}
                 className={cn(
                   "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10.5px] font-semibold transition-all duration-200",
                   !incognitoMode
-                    ? "bg-background shadow-sm text-foreground"
+                    ? "bg-background shadow-sm text-foreground ring-1 ring-accent/20"
                     : (incognitoMode ? "text-purple-400/40 hover:text-purple-300" : "text-muted-foreground/50 hover:text-muted-foreground")
                 )}
               >
                 <Sparkles className={cn("w-3 h-3", !incognitoMode ? "text-accent" : "")} />
-                arc-1a
+                <span className={cn(!incognitoMode ? "text-accent" : "")}>arc-1a</span>
               </button>
               <button
-                onClick={() => setIncognitoMode(true)}
+                onClick={() => setIncognitoMode(!incognitoMode)}
                 className={cn(
                   "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10.5px] font-semibold transition-all duration-200",
                   incognitoMode
@@ -648,7 +648,7 @@ const AppBuilderMain = () => {
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 backdrop-blur-md animate-in fade-in slide-in-from-top-4 duration-500">
             <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
-            <span className="text-[11px] font-bold text-purple-400 uppercase tracking-widest">Safe mode on</span>
+            <span className="text-[11px] font-bold text-purple-400 uppercase tracking-widest">History Disabled</span>
           </div>
         </div>
       )}

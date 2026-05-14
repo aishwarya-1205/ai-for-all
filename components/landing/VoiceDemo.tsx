@@ -7,7 +7,6 @@ import {
   useEffect,
   useCallback,
   CSSProperties,
-  MutableRefObject,
 } from "react";
 import { Play, Pause } from "lucide-react";
 
@@ -21,11 +20,10 @@ const VC_SRC = "/Voice_cloning.mp3"
 const CHARACTER_SRC = "/Text_to_sound.mp3";
 const COMPANION_SRC = "/Voice_cloning.mp3";
 
-/* ─── TYPES ───────────────────────────────────────────────────── */
+/* ─── TYPES ─────────────────────────────────────────────── */
 interface PoemLine { text: string; start: number; end: number }
 interface WaveformProps { visible: boolean; playing: boolean; accent?: string }
-interface LyricsPanelProps { audioRef: MutableRefObject<HTMLAudioElement | null>; accentColor: string; label: string }
-interface SideCard { id: string; category: string; title: string; tags: string; audioSrc: string; imageSrc: string; bgStyle: CSSProperties }
+interface SideCard { id: string; category: string; title: string; tags: string; audioSrc: string; imageSrc: string; bgStyle: CSSProperties; lyrics: PoemLine[] }
 interface SideVoiceCardProps { card: SideCard }
 
 /* ─── POEM LINES ──────────────────────────────────────────────── */
@@ -164,14 +162,48 @@ const LyricsPanel = memo(function LyricsPanel({ accentColor, label, lines }: { a
 const lyricsPanelOuter: CSSProperties = { height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" };
 const lyricsScrollStyle: CSSProperties = { flex: 1, overflowY: "auto", padding: "2px 14px 10px", scrollbarWidth: "none" };
 
-/* ─── AUDIO HOOK ──────────────────────────────────────────────── */
+/* ─── AUDIO HOOK — fully lazy, no network until first play ────── */
 function useAudio(src: string) {
   const ref = useRef<HTMLAudioElement | null>(null);
+  const listenerAttached = useRef(false);
+  const onEndedRef = useRef<(() => void) | null>(null);
+
   const get = useCallback((): HTMLAudioElement => {
-    if (!ref.current) ref.current = new Audio(src);
+    if (!ref.current) {
+      ref.current = new Audio(src);
+      ref.current.preload = "none";
+    }
+    // Attach ended listener lazily on first get, if a handler is registered
+    if (!listenerAttached.current && onEndedRef.current) {
+      ref.current.addEventListener("ended", onEndedRef.current);
+      listenerAttached.current = true;
+    }
     return ref.current;
   }, [src]);
-  return { ref, get };
+
+  const setOnEnded = useCallback((handler: () => void) => {
+    onEndedRef.current = handler;
+    // If audio already exists, attach immediately
+    if (ref.current && !listenerAttached.current) {
+      ref.current.addEventListener("ended", handler);
+      listenerAttached.current = true;
+    }
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (ref.current) {
+        ref.current.pause();
+        ref.current.removeAttribute("src");
+        ref.current.load();
+        ref.current = null;
+      }
+      listenerAttached.current = false;
+    };
+  }, []);
+
+  return { ref, get, setOnEnded };
 }
 
 /* ─── VOICE CLONE CARD (middle — split top/bottom) ───────────── */
@@ -187,6 +219,12 @@ function VoiceCloneCard() {
   const stop = useCallback((a: HTMLAudioElement | null, setP: (v: boolean) => void) => {
     if (!a) return; a.pause(); a.currentTime = 0; setP(false);
   }, []);
+
+  // Register ended handlers lazily (no audio creation)
+  useEffect(() => {
+    top.setOnEnded(() => setTopPlaying(false));
+    bot.setOnEnded(() => setBotPlaying(false));
+  }, [top, bot]);
 
   const toggleTop = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -204,19 +242,6 @@ function VoiceCloneCard() {
     else { a.play().catch(() => setBotPlaying(false)); setBotPlaying(true); }
   }, [botPlaying, top, bot, stop]);
 
-  useEffect(() => {
-    const a = top.get();
-    const h = () => setTopPlaying(false);
-    a.addEventListener("ended", h);
-    return () => a.removeEventListener("ended", h);
-  }, [top]);
-  useEffect(() => {
-    const a = bot.get();
-    const h = () => setBotPlaying(false);
-    a.addEventListener("ended", h);
-    return () => a.removeEventListener("ended", h);
-  }, [bot]);
-
   return (
     <div style={cloneCardOuter}>
       {/* TOP */}
@@ -233,7 +258,7 @@ function VoiceCloneCard() {
           </div>
         </div>
         <div style={{ flex: 1, minHeight: 0 }}>
-          <LyricsPanel audioRef={top.ref} accentColor="rgba(220,210,200,1)" label="Text to Speech" lines={POEM_LINES} />
+          <LyricsPanel accentColor="rgba(220,210,200,1)" label="Text to Speech" lines={POEM_LINES} />
         </div>
         <div style={cardFooterRow}>
           <div>
@@ -261,7 +286,7 @@ function VoiceCloneCard() {
           </div>
         </div>
         <div style={{ flex: 1, minHeight: 0 }}>
-          <LyricsPanel audioRef={bot.ref} accentColor="rgba(160,200,255,1)" label="Voice Cloning" lines={POEM_LINES} />
+          <LyricsPanel accentColor="rgba(160,200,255,1)" label="Voice Cloning" lines={POEM_LINES} />
         </div>
         <div style={cardFooterRow}>
           <div>
@@ -296,11 +321,9 @@ const SideVoiceCard = memo(function SideVoiceCard({ card }: SideVoiceCardProps) 
     }
   }, [playing, card.audioSrc, audio]);
 
+  // Register ended handler lazily — no audio object created on mount
   useEffect(() => {
-    const a = audio.get();
-    const h = () => setPlaying(false);
-    a.addEventListener("ended", h);
-    return () => a.removeEventListener("ended", h);
+    audio.setOnEnded(() => setPlaying(false));
   }, [audio]);
 
   return (
@@ -340,7 +363,7 @@ const SideVoiceCard = memo(function SideVoiceCard({ card }: SideVoiceCardProps) 
         </div>
 
         <div style={{ flex: 1, minHeight: 0 }}>
-          <LyricsPanel audioRef={audio.ref} accentColor="rgba(255,255,255,0.9)" label="Live Lyrics" lines={card.lyrics} />
+          <LyricsPanel accentColor="rgba(255,255,255,0.9)" label="Live Lyrics" lines={card.lyrics} />
         </div>
 
         <div style={cardFooterRow}>
@@ -382,24 +405,6 @@ function halfStyle(gradient: string, isHovered: boolean): CSSProperties {
 export const VoiceDemo = memo(function VoiceDemo() {
   return (
     <>
-      <style>{`
-        @keyframes fishWave {
-          0%   { transform: scaleY(0.3); }
-          100% { transform: scaleY(1.3); }
-        }
-        @keyframes cardReveal {
-          from { opacity: 0; transform: translateY(14px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .voice-card-col {
-          animation: cardReveal 0.45s cubic-bezier(0.22,1,0.36,1) both;
-        }
-        .voice-card-col:nth-child(1) { animation-delay: 0.05s; }
-        .voice-card-col:nth-child(2) { animation-delay: 0.12s; }
-        .voice-card-col:nth-child(3) { animation-delay: 0.19s; }
-        ::-webkit-scrollbar { display: none; }
-      `}</style>
-
       <div className="flex flex-col h-full px-5 pt-4 pb-5 gap-3">
         <p style={headingStyle}>AI Voice but this time, it&apos;s alive.</p>
 

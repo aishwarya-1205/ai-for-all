@@ -56,7 +56,7 @@ const AudioLabMain = ({ activeFeature, onFeatureChange }: Props) => {
   return (
     <div className="absolute inset-0 flex flex-col min-w-0 min-h-0">
       {/* Feature tabs — horizontal scroll on mobile */}
-      <div className="px-3 sm:px-6 pt-4 pb-2 flex items-center gap-2 overflow-x-auto shrink-0 no-scrollbar">
+      <div className="px-3 sm:px-6 pt-4 pb-2 flex items-center justify-center gap-2 overflow-x-auto shrink-0 no-scrollbar">
         {features.map((f) => (
           <button
             key={f.id}

@@ -59,7 +59,7 @@ const CanvasNav = ({
         className={cn(
           "h-[52px] flex items-center justify-between px-3 sm:px-5 shrink-0 z-10 transition-all duration-500",
           incognitoMode 
-            ? "bg-purple-950/10 border-b border-purple-500/10 backdrop-blur-xl" 
+            ? "bg-slate-950/10 border-b border-slate-500/10 backdrop-blur-xl" 
             : "bg-white/5 border-b border-white/5 backdrop-blur-xl"
         )}
       >
@@ -74,8 +74,8 @@ const CanvasNav = ({
               className={cn(
                 "w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200",
                 rightPanelOpen
-                  ? (incognitoMode ? "bg-purple-500/20 text-purple-400" : "bg-accent/10 text-accent")
-                  : (incognitoMode ? "text-purple-400/40 hover:text-purple-300 hover:bg-purple-500/10" : "text-muted-foreground/50 hover:text-foreground/80 hover:bg-muted/60")
+                  ? (incognitoMode ? "bg-slate-500/20 text-slate-400" : "bg-accent/10 text-accent")
+                  : (incognitoMode ? "text-slate-400/40 hover:text-slate-300 hover:bg-slate-500/10" : "text-muted-foreground/50 hover:text-foreground/80 hover:bg-muted/60")
               )}
             >
               <SquareArrowRight
@@ -90,7 +90,7 @@ const CanvasNav = ({
             className={cn(
               "w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 hover:opacity-90",
               profileOpen
-                ? (incognitoMode ? "ring-2 ring-purple-500/40" : "ring-2 ring-accent/30")
+                ? (incognitoMode ? "ring-2 ring-slate-500/40" : "ring-2 ring-accent/30")
                 : ""
             )}
           >
@@ -107,7 +107,7 @@ const CanvasNav = ({
             className={cn(
               "border shadow-float overflow-hidden animate-in fade-in zoom-in-95 duration-200 rounded-xl transition-colors duration-500",
               incognitoMode 
-                ? "bg-[#0f0815] border-purple-500/20 text-purple-100" 
+                ? "bg-[#141414] border-slate-500/20 text-slate-100" 
                 : "glass-strong border-border/40"
             )}
             style={{
@@ -124,7 +124,7 @@ const CanvasNav = ({
           >
             <div className={cn(
               "px-4 py-4 border-b flex items-center gap-3",
-              incognitoMode ? "border-purple-500/10 bg-purple-500/5" : "border-border/40 bg-muted/20"
+              incognitoMode ? "border-slate-500/10 bg-slate-500/5" : "border-border/40 bg-muted/20"
             )}>
               <AnimatedAvatar name="John Doe" size={40} className="rounded-xl shadow-sm" />
               <div className="min-w-0">
@@ -133,7 +133,7 @@ const CanvasNav = ({
                 </p>
                 <p className={cn(
                   "text-[11px] truncate",
-                  incognitoMode ? "text-purple-400/40" : "text-muted-foreground/60"
+                  incognitoMode ? "text-slate-400/40" : "text-muted-foreground/60"
                 )}>
                   john@rivinity.ai
                 </p>
@@ -156,20 +156,20 @@ const CanvasNav = ({
                   className={cn(
                     "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12.5px] font-medium transition-all duration-150",
                     incognitoMode 
-                      ? "text-purple-100/70 hover:bg-purple-500/10 hover:text-purple-100" 
+                      ? "text-slate-100/70 hover:bg-slate-500/10 hover:text-slate-100" 
                       : "text-foreground/70 hover:bg-muted hover:text-foreground"
                   )}
                 >
                   <item.icon className={cn(
                     "w-3.5 h-3.5",
-                    incognitoMode ? "text-purple-400/40" : "text-muted-foreground/50"
+                    incognitoMode ? "text-slate-400/40" : "text-muted-foreground/50"
                   )} />
                   {item.label}
                 </button>
               ))}
               <div className={cn(
                 "h-px my-1.5 mx-2",
-                incognitoMode ? "bg-purple-500/10" : "bg-border/40"
+                incognitoMode ? "bg-slate-500/10" : "bg-border/40"
               )} />
               <button
                 onClick={() => setProfileOpen(false)}

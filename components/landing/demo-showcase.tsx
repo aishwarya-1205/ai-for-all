@@ -273,11 +273,11 @@ const SearchDemo = memo(function SearchDemo({ onRestart }: { onRestart: () => vo
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {sources.map((source, i) => (
-                          <motion.div 
+                          <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: i * 0.1 }}
-                            key={i} 
+                            key={i}
                             className="flex items-center gap-2 px-2 py-1 bg-background border border-border rounded-full shadow-sm"
                           >
                             <div className="w-3.5 h-3.5 rounded-full bg-accent/10 flex items-center justify-center text-[9px] font-bold text-accent border border-accent/20">
@@ -298,7 +298,7 @@ const SearchDemo = memo(function SearchDemo({ onRestart }: { onRestart: () => vo
                           <span className="inline-flex items-center justify-center w-4 h-4 ml-1 rounded-full bg-accent/10 text-[9px] font-bold text-accent border border-accent/20">1</span>
                         )}
                       </div>
-                      
+
                       {phase === "done" && (
                         <div className="space-y-3 pt-1 animate-in fade-in duration-700">
                           <div className="flex gap-2 text-xs text-muted-foreground leading-relaxed">
@@ -325,8 +325,8 @@ const SearchDemo = memo(function SearchDemo({ onRestart }: { onRestart: () => vo
                         <div className="text-[10px] font-semibold text-foreground/40 uppercase tracking-widest mb-2">Suggested questions</div>
                         <div className="space-y-1.5">
                           {suggestedQuestions.map((q, i) => (
-                            <button 
-                              key={i} 
+                            <button
+                              key={i}
                               className="flex items-center justify-between w-full p-2 text-[11px] text-left border border-border rounded-lg hover:bg-background transition group"
                             >
                               <span className="text-muted-foreground group-hover:text-foreground transition line-clamp-1">{q}</span>

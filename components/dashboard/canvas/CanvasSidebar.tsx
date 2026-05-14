@@ -34,12 +34,12 @@ const CanvasSidebar = ({ onClose }: CanvasSidebarProps) => {
   return (
     <aside className={cn(
       "w-[260px] h-full flex flex-col shrink-0 transition-colors duration-500",
-      incognitoMode ? "bg-[#0a0510]" : "bg-background"
+      incognitoMode ? "bg-[#0c0a09]" : "bg-background"
     )}>
       <div className="px-5 pt-5 pb-4 relative flex items-center justify-center">
         {/* Centered Logo + Text */}
         <div className="flex items-center gap-2.5">
-          <div className={`relative w-10 h-10 transition-all duration-500 ${incognitoMode ? "shadow-[0_0_20px_rgba(168,85,247,0.3)]" : ""}`}>
+          <div className={`relative w-10 h-10 transition-all duration-500 ${incognitoMode ? "shadow-[0_0_20px_rgba(148,163,184,0.3)]" : ""}`}>
             <Image
               src="/logo.png"
               alt="Rivinity Logo"
@@ -51,7 +51,7 @@ const CanvasSidebar = ({ onClose }: CanvasSidebarProps) => {
 
           <span className={cn(
             "font-semibold tracking-tight text-[17px] transition-colors",
-            incognitoMode ? "text-purple-100" : "text-foreground"
+            incognitoMode ? "text-slate-100" : "text-foreground"
           )}>
             Rivinity
           </span>
@@ -64,7 +64,7 @@ const CanvasSidebar = ({ onClose }: CanvasSidebarProps) => {
             aria-label="Close sidebar"
             className={cn(
               "absolute right-5 w-7 h-7 rounded-lg flex items-center justify-center transition-all lg:hidden",
-              incognitoMode ? "text-purple-400/50 hover:text-purple-300" : "text-muted-foreground/50 hover:text-foreground/70"
+              incognitoMode ? "text-slate-400/50 hover:text-slate-300" : "text-muted-foreground/50 hover:text-foreground/70"
             )}
           >
             <X className="w-4 h-4" />
@@ -76,7 +76,7 @@ const CanvasSidebar = ({ onClose }: CanvasSidebarProps) => {
         <button className={cn(
           "w-full h-9 rounded-full text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300",
           incognitoMode
-            ? "bg-gradient-to-br from-purple-600 to-indigo-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.2)] hover:shadow-[0_0_25px_rgba(168,85,247,0.4)]"
+            ? "bg-gradient-to-br from-slate-600 to-zinc-600 text-white shadow-[0_0_20px_rgba(148,163,184,0.2)] hover:shadow-[0_0_25px_rgba(148,163,184,0.4)]"
             : "gradient-accent text-primary-foreground hover:opacity-90"
         )}>
           <Plus className="w-4 h-4" />
@@ -97,18 +97,18 @@ const CanvasSidebar = ({ onClose }: CanvasSidebarProps) => {
               key={c.id}
               className={cn(
                 "w-full text-left px-3 py-2 rounded-xl transition-all duration-150",
-                incognitoMode ? "hover:bg-purple-500/10" : "hover:bg-muted/50"
+                incognitoMode ? "hover:bg-slate-500/10" : "hover:bg-muted/50"
               )}
             >
               <p className={cn(
                 "text-[13px] truncate transition-colors",
-                incognitoMode ? "text-purple-100/70" : "text-foreground/70"
+                incognitoMode ? "text-saffron-100/70" : "text-foreground/70"
               )}>
                 {c.title}
               </p>
               <p className={cn(
                 "text-[11px] mt-0.5 transition-colors",
-                incognitoMode ? "text-purple-400/30" : "text-muted-foreground/40"
+                incognitoMode ? "text-saffron-400/30" : "text-muted-foreground/40"
               )}>
                 {c.time}
               </p>
@@ -128,18 +128,18 @@ const CanvasSidebar = ({ onClose }: CanvasSidebarProps) => {
               key={c.id}
               className={cn(
                 "w-full text-left px-3 py-2 rounded-xl transition-all duration-150",
-                incognitoMode ? "hover:bg-purple-500/10" : "hover:bg-muted/50"
+                incognitoMode ? "hover:bg-slate-500/10" : "hover:bg-muted/50"
               )}
             >
               <p className={cn(
                 "text-[13px] truncate transition-colors",
-                incognitoMode ? "text-purple-100/70" : "text-foreground/70"
+                incognitoMode ? "text-saffron-100/70" : "text-foreground/70"
               )}>
                 {c.title}
               </p>
               <p className={cn(
                 "text-[11px] mt-0.5 transition-colors",
-                incognitoMode ? "text-purple-400/30" : "text-muted-foreground/40"
+                incognitoMode ? "text-saffron-400/30" : "text-muted-foreground/40"
               )}>
                 {c.time}
               </p>
