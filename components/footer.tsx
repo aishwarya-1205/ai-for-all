@@ -25,6 +25,15 @@ const footerLinks: Record<string, FooterLink[]> = {
     { label: "Compliance", href: "#" },
     { label: "Post Your Ad", href: "/advertise" },
   ],
+  Tools: [
+    { label: "Web Search", href: "#" },
+    { label: "App Builder", href: "/dashboard/app-builder" },
+    { label: "Database", href: "#" },
+    { label: "Security", href: "#" },
+    { label: "Audio Lab", href: "/dashboard/audio-lab" },
+    { label: "RivinityLM", href: "/dashboard/rivinity-lm" },
+    { label: "Image Enhancer", href: "/dashboard/image-enhancer" },
+  ],
   "Other Links": [
     { label: "Documentation", href: "#" },
     { label: "API Status", href: "#" },
@@ -98,7 +107,7 @@ export function Footer() {
 
           {/* Card */}
           <div className="relative z-[1] bg-card border border-border rounded-[3rem] p-10 shadow-sm transition-colors duration-300">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-12">
               <div className="flex flex-col gap-8">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span>A product by</span>
@@ -127,7 +136,7 @@ export function Footer() {
                 <div className="flex items-center gap-3 flex-wrap">
                   {/* ISO 9001:2015 */}
                   <div
-                    className="flex items-center justify-center w-14 h-14 rounded-full border-2 border-accent/30 bg-card"
+                    className="flex items-center justify-center w-12 h-12 rounded-full border-2 border-accent/30 bg-card"
                     title="ISO 9001:2015"
                   >
                     <div className="text-center leading-none">
@@ -145,7 +154,7 @@ export function Footer() {
 
                   {/* GDPR */}
                   <div
-                    className="flex items-center justify-center w-14 h-14 rounded-full bg-[#003399]"
+                    className="flex items-center justify-center w-12 h-12 rounded-full bg-[#003399]"
                     title="GDPR Compliant"
                   >
                     <div className="text-center leading-none">
@@ -168,7 +177,7 @@ export function Footer() {
 
                   {/* SOC 2 */}
                   <div
-                    className="flex items-center justify-center w-14 h-14 rounded-full bg-foreground"
+                    className="flex items-center justify-center w-12 h-12 rounded-full bg-foreground"
                     title="SOC 2 Type II"
                   >
                     <div className="text-center leading-none">
