@@ -2,24 +2,28 @@
 
 import { useEffect, useRef } from "react";
 
-interface Pt { x: number; y: number; }
+interface Pt {
+  x: number;
+  y: number;
+}
 
 const LAYERS: { pts: Pt[]; op: number }[] = [
   {
     pts: [
-      { x: 0, y: 0.60 },
+      { x: 0, y: 0.6 },
       { x: 0.05, y: 0.56 },
-      { x: 0.10, y: 0.48 }, // small left outer peak
+      { x: 0.1, y: 0.48 }, // small left outer peak
       { x: 0.14, y: 0.52 },
       { x: 0.18, y: 0.44 }, // ← main left peak
-      { x: 0.23, y: 0.50 },
+      { x: 0.23, y: 0.5 },
       { x: 0.28, y: 0.53 },
-      { x: 0.33, y: 0.50 }, // small mid-left bump
+      { x: 0.33, y: 0.5 }, // small mid-left bump
       { x: 0.38, y: 0.54 },
       { x: 0.43, y: 0.52 },
       { x: 0.47, y: 0.54 },
       { x: 0.5, y: 0.55 },
-    ], op: 0.88
+    ],
+    op: 0.88,
   },
 
   {
@@ -31,10 +35,11 @@ const LAYERS: { pts: Pt[]; op: number }[] = [
       { x: 0.22, y: 0.52 }, // ← background main peak
       { x: 0.28, y: 0.57 },
       { x: 0.35, y: 0.59 },
-      { x: 0.40, y: 0.56 },
+      { x: 0.4, y: 0.56 },
       { x: 0.46, y: 0.59 },
-      { x: 0.5, y: 0.60 },
-    ], op: 0.40
+      { x: 0.5, y: 0.6 },
+    ],
+    op: 0.4,
   },
 ];
 
@@ -45,7 +50,8 @@ function linearY(pts: Pt[], tx: number): number {
   if (mirrored >= last.x) return last.y;
   for (let i = 1; i < pts.length; i++) {
     if (mirrored <= pts[i].x) {
-      const p1 = pts[i - 1], p2 = pts[i];
+      const p1 = pts[i - 1],
+        p2 = pts[i];
       const t = (mirrored - p1.x) / (p2.x - p1.x);
       return p1.y + (p2.y - p1.y) * t;
     }
@@ -53,11 +59,21 @@ function linearY(pts: Pt[], tx: number): number {
   return last.y;
 }
 
-function drawSquareDot(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, opacity: number) {
-  const r = size * 0.3, half = size / 2, x = cx - half, y = cy - half;
+function drawSquareDot(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  size: number,
+  opacity: number,
+) {
+  const r = size * 0.3,
+    half = size / 2,
+    x = cx - half,
+    y = cy - half;
   ctx.globalAlpha = opacity;
   ctx.beginPath();
-  ctx.moveTo(x + r, y); ctx.lineTo(x + size - r, y);
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + size - r, y);
   ctx.quadraticCurveTo(x + size, y, x + size, y + r);
   ctx.lineTo(x + size, y + size - r);
   ctx.quadraticCurveTo(x + size, y + size, x + size - r, y + size);
@@ -65,7 +81,8 @@ function drawSquareDot(ctx: CanvasRenderingContext2D, cx: number, cy: number, si
   ctx.quadraticCurveTo(x, y + size, x, y + size - r);
   ctx.lineTo(x, y + r);
   ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath(); ctx.fill();
+  ctx.closePath();
+  ctx.fill();
   ctx.globalAlpha = 1;
 }
 
@@ -83,8 +100,10 @@ export default function HeroDotMountain() {
     const render = () => {
       const W = container.clientWidth;
       const H = container.clientHeight;
-      canvas.width = W * dpr; canvas.height = H * dpr;
-      canvas.style.width = `${W}px`; canvas.style.height = `${H}px`;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      canvas.style.width = `${W}px`;
+      canvas.style.height = `${H}px`;
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
       ctx.scale(dpr, dpr);
@@ -133,8 +152,22 @@ export default function HeroDotMountain() {
   }, []);
 
   return (
-    <div ref={containerRef} aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", overflow: "hidden" }}>
-      <canvas ref={canvasRef} style={{ display: "block", width: "100%", height: "100%" }} />
+    <div
+      ref={containerRef}
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none",
+        overflow: "hidden",
+      }}
+    >
+      <canvas
+        ref={canvasRef}
+        style={{ display: "block", width: "100%", height: "100%" }}
+      />
     </div>
   );
 }
